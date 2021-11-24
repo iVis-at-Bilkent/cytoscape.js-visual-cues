@@ -1,0 +1,41 @@
+{
+  "name": "cytoscape-extension-template",
+  "version": "1.0.0",
+  "description": "A template for developing cytoscape.js extension",
+  "main": "dist/cytoscape-extension-template.cjs.js",
+  "module": "dist/cytoscape-extension-template.esm.js",
+  "browser": "dist/cytoscape-extension-template.js",
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^20.0.0",
+    "@rollup/plugin-node-resolve": "^13.0.4",
+    "@rollup/plugin-typescript": "^8.2.5",
+    "rollup": "^2.56.3",
+    "rollup-plugin-livereload": "^2.0.5",
+    "rollup-plugin-serve": "^1.1.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "ts-node": "^10.2.1",
+    "tslib": "^2.3.1",
+    "typescript": "^4.4.3"
+  },
+  "peerDependencies": {
+    "cytoscape": "^2.7.0 || ^3.0.0"
+  },
+  "scripts": {
+    "build": "rollup -c --environment NODE_ENV:production",
+    "build-dev": "rollup -c",
+    "dev": "rollup -c -w",
+    "demo": "rollup -c demo.config.js -w -m",
+    "test": "ts-node test/unit/test.ts",
+    "pretest": "npm run build",
+    "cy": "cypress open --project ./test",
+    "e2e": "cypress run --project ./test -b chrome > e2e-test-results.txt"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "cypress": "^8.4.0"
+  }
+}
