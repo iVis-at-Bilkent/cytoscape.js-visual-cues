@@ -1,7 +1,6 @@
 # Developer Guide
 
 You can read [demo guide](demo/README.md) for more information about demo.
-Firstly after you generated your own repository from this template, rename `cytoscape-extension-template` and `cytoscape.js-extension-template` strings inside all files (You can use `Ctrl+Shift+F` in a modern editor).
 
 ## npm scripts
 

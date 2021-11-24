@@ -1,10 +1,10 @@
 {
-  "name": "cytoscape-extension-template",
+  "name": "cytoscape-visual-cues",
   "version": "1.0.0",
   "description": "A template for developing cytoscape.js extension",
-  "main": "dist/cytoscape-extension-template.cjs.js",
-  "module": "dist/cytoscape-extension-template.esm.js",
-  "browser": "dist/cytoscape-extension-template.js",
+  "main": "dist/cytoscape-visual-cues.cjs.js",
+  "module": "dist/cytoscape-visual-cues.esm.js",
+  "browser": "dist/cytoscape-visual-cues.js",
   "author": "",
   "license": "ISC",
   "devDependencies": {

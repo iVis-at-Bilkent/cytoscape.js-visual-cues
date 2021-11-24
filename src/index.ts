@@ -1,5 +1,5 @@
 // update the below line according to your own names
-// import { extensionConstructor } from "./cytoscape-extension-template";
+// import { extensionConstructor } from "./cytoscape-visual-cues";
 
 export default function register(cytoscape) {
   if (!cytoscape) {

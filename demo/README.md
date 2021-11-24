@@ -13,8 +13,8 @@ This demo uses UMD formated version of the extension. It is built to show the ca
 
 ## Usage instructions
 
-1. Download the source codes or clone the repository with `git clone https://github.com/tarchinsoft/cytoscape.js-extension-template.git`
-2. Go to the root folder `cd cytoscape.js-extension-template`
+1. Download the source codes or clone the repository with `git clone https://github.com/tarchinsoft/cytoscape.js-visual-cues.git`
+2. Go to the root folder `cd cytoscape.js-visual-cues`
 3. Run `npm install` to install the dependencies
 4. Run `npm run demo`. By default it will open http://localhost:8080/demo/demo.html
 

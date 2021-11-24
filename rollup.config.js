@@ -11,7 +11,7 @@ export default [
   {
     input: 'src/index.ts',
     output: {
-      name: 'cytoscape.js-extension-template',
+      name: 'cytoscape.js-visual-cues',
       file: pkg.browser,
       format: 'umd',
       exports: 'auto',
