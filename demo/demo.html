@@ -51,13 +51,13 @@
       <div class="accordion">
         <div class="accordion-item">
           <h2 class="accordion-header" id="panelsStayOpen-headingOne">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
               data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="false"
               aria-controls="panelsStayOpen-collapseOne">
               File Operations
             </button>
           </h2>
-          <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show"
+          <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse"
             aria-labelledby="panelsStayOpen-headingOne">
             <div class="accordion-body d-flex flex-wrap justify-content-center">
               <div class="dropdown m-1">
@@ -102,6 +102,25 @@
                   Layout on Open
                 </label>
               </div>
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="panelsStayOpen-headingOne2">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+              data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="false"
+              aria-controls="panelsStayOpen-collapseOne">
+              API Functions
+            </button>
+          </h2>
+          <div id="panelsStayOpen-collapseOne2" class="accordion-collapse collapse show"
+            aria-labelledby="panelsStayOpen-headingOne">
+            <div class="accordion-body d-flex flex-wrap justify-content-center">
+              <button id="addCue" type="button" class="btn btn-secondary m-1">Add cue(s) to selected</button>
+              <button id="removeCue" type="button" class="btn btn-secondary m-1">Remove cue(s) from selected</button>
+              <button id="updateCue" type="button" class="btn btn-secondary m-1">Update cue(s) of Selected</button>
+              <button id="showCue" type="button" class="btn btn-secondary m-1">Show cue(s) to Selected</button>
+              <button id="hideCue" type="button" class="btn btn-secondary m-1">Add cues to Selected</button>
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 // update the below line according to your own names
-// import { extensionConstructor } from "./cytoscape-visual-cues";
+import { addCue, removeCue } from "./cytoscape-visual-cues";
 
 export default function register(cytoscape) {
   if (!cytoscape) {
@@ -7,7 +7,8 @@ export default function register(cytoscape) {
   } // can't register if cytoscape unspecified
 
   // update the below line according to your own names
-  // cytoscape("core", "extensionConstructor", extensionConstructor);
+  cytoscape("collection", "addCue", addCue);
+  cytoscape("collection", "removeCue", removeCue);
 }
 
 if (typeof window["cytoscape"] !== "undefined") {
