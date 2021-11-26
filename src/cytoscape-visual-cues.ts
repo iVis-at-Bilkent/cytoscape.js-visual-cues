@@ -43,7 +43,7 @@ interface Str2CueData {
 const UPDATE_POPPER_WAIT = 100;
 let cueData: Str2CueData = {};
 
-function setBadgeCoords(e, cues: Cues, cyZoom: number, zoom2hide: number) {
+function setCueCoords(e, cues: Cues, cyZoom: number, zoom2hide: number) {
   // let the nodes resize first
   let ratio = 1;
   let z1 = (cyZoom / 2) * ratio;
@@ -64,10 +64,10 @@ function setBadgeCoords(e, cues: Cues, cyZoom: number, zoom2hide: number) {
     }px) scale(${z1})`;
   }
 
-  showHideBadge(e.visible(), cues, cyZoom, zoom2hide);
+  setCueVisibilities(e.visible(), cues, cyZoom, zoom2hide);
 }
 
-function showHideBadge(
+function setCueVisibilities(
   isShow: boolean,
   cues: Cues,
   cyZoom: number,
@@ -85,25 +85,70 @@ function showHideBadge(
   }
 }
 
-function setBadgeCoordsOfChildren(e, zoom: number, zoom2hide: number) {
+function setCueCoordsOfChildren(e, zoom: number, zoom2hide: number) {
   const elems = e.children();
   for (let i = 0; i < elems.length; i++) {
     const child = elems[i];
     if (child.isParent()) {
-      setBadgeCoordsOfChildren(child, zoom, zoom2hide);
+      setCueCoordsOfChildren(child, zoom, zoom2hide);
     } else {
       const d = cueData[child.id()];
       if (d) {
-        setBadgeCoords(d.graphElem, d.cues, zoom, zoom2hide);
+        setCueCoords(d.graphElem, d.cues, zoom, zoom2hide);
       }
     }
   }
 }
 
-function setBadgeVisibility(e, div: HTMLElement) {
+function setCueVisibility(e, div: HTMLElement) {
   if (!e.visible()) {
     div.style.opacity = "0";
+  } else {
+    div.style.opacity = "1";
   }
+}
+
+function showHideCues(
+  eles,
+  cueId: string | number | undefined,
+  isShow: boolean
+) {
+  let opacity = "0";
+  if (isShow) {
+    opacity = "1";
+  }
+  for (let i = 0; i < eles.length; i++) {
+    const e = eles[i];
+    if (cueId !== undefined && cueId != null) {
+      const cue = cueData[e.id()].cues[cueId];
+      if (cue) {
+        cue.htmlElem.style.opacity = opacity;
+      } else {
+        console.error("Can not found a cue with id: ", cueId);
+      }
+    } else {
+      const cues = cueData[e.id()].cues;
+      for (let id in cues) {
+        cues[id].htmlElem.style.opacity = opacity;
+      }
+    }
+  }
+}
+
+function destroyCuesOfGraphElem(e: { target: any }) {
+  const id = e.target.id();
+  // remove cues from DOM
+  const cues = cueData[id].cues;
+  for (let cueId in cues) {
+    cues[cueId].htmlElem.remove();
+  }
+  // unbind previously bound functions
+  if (cueData[id].positionFn) {
+    cueData[id].graphElem.off("position", cueData[id].positionFn);
+    cueData[id].graphElem.off("style", cueData[id].styleFn);
+    e.target.cy().off("pan zoom resize", cueData[id].positionFn);
+  }
+  delete cueData[id];
 }
 
 export function addCue(cueOptions: CueOptions) {
@@ -125,17 +170,17 @@ export function addCue(cueOptions: CueOptions) {
     htmlElem.style.position = "absolute";
     htmlElem.style.top = "0px";
     htmlElem.style.left = "0px";
-    
+
     const id = e.id() + "";
     const positionHandlerFn = debounce2(
       () => {
         const zoom = cy.zoom();
-        setBadgeCoords(e, cueData[id].cues, zoom, cueOptions.zoom2hide);
-        setBadgeCoordsOfChildren(e, zoom, cueOptions.zoom2hide);
+        setCueCoords(e, cueData[id].cues, zoom, cueOptions.zoom2hide);
+        setCueCoordsOfChildren(e, zoom, cueOptions.zoom2hide);
       },
       UPDATE_POPPER_WAIT,
       () => {
-        showHideBadge(
+        setCueVisibilities(
           false,
           cueData[id].cues,
           cy.zoom(),
@@ -145,11 +190,12 @@ export function addCue(cueOptions: CueOptions) {
     ).bind(this);
 
     const styleHandlerFn = debounce(() => {
-      setBadgeVisibility(e, htmlElem);
+      setCueVisibility(e, htmlElem);
     }, UPDATE_POPPER_WAIT * 2).bind(this);
 
     e.on("position", positionHandlerFn);
     e.on("style", styleHandlerFn);
+    e.on("remove", destroyCuesOfGraphElem);
     cy.on("pan zoom resize", positionHandlerFn);
 
     const existingCuesData = cueData[id];
@@ -168,23 +214,52 @@ export function addCue(cueOptions: CueOptions) {
         styleFn: styleHandlerFn,
       };
     }
-
     positionHandlerFn();
   }
 }
 
 export function removeCue(cueId: string | number) {
   const eles = this;
+  for (let i = 0; i < eles.length; i++) {
+    const e = eles[i];
+    if (cueId !== undefined && cueId != null) {
+      const cue = cueData[e.id()].cues[cueId];
+      if (cue) {
+        cue.htmlElem.remove();
+        delete cueData[e.id()].cues[cueId];
+      } else {
+        console.error("Can not found a cue with id: ", cueId);
+      }
+    } else {
+      destroyCuesOfGraphElem({ target: e });
+    }
+  }
 }
 
 export function updateCue(cueOptions: CueOptions) {
   const eles = this;
+  const cueId = cueOptions.id;
+  if (cueId !== undefined && cueId != null) {
+    console.error("Id is undefined. To update a 'cueId' must be provided!");
+    return;
+  }
+  for (let i = 0; i < eles.length; i++) {
+    const e = eles[i];
+    const cue = cueData[e.id()].cues[cueId];
+    if (cue) {
+      cueData[e.id()].cues[cueId] = cueOptions;
+    } else {
+      console.error("Can not found a cue with id: ", cueId);
+    }
+  }
 }
 
-export function showCue(cueId: string | number) {
+export function showCue(cueId: string | number | undefined) {
   const eles = this;
+  showHideCues(eles, cueId, true);
 }
 
-export function hideCue(cueId: string | number) {
+export function hideCue(cueId: string | number | undefined) {
   const eles = this;
+  showHideCues(eles, cueId, false);
 }

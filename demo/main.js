@@ -37,13 +37,35 @@ function onLoaded() {
     for (let i = 0; i < elems.length; i++) {
       const e = elems[i];
       const r = cy.$().degreeCentrality({ root: e });
-      generateBadge4Elem(e, r.degree);
+      buildCue4Elem(e, r.degree);
     }
   });
 
-  function generateBadge4Elem(e, badge) {
+  document.getElementById("deleteSelected").addEventListener("click", () => {
+    cy.$(":selected").remove();
+  });
+
+  document.getElementById("hideSelected").addEventListener("click", () => {
+    cy.$(":selected").css("visibility", "hidden");
+    const hiddenNodes = cy.nodes(":hidden");
+    for (let i = 0; i < hiddenNodes.length; i++) {
+      hiddenNodes[i].connectedEdges().css("visibility", "hidden");
+    }
+  });
+
+  document.getElementById("showAllHidden").addEventListener("click", () => {
+    cy.$(":hidden").css("visibility", "visible");
+  });
+
+  function buildCue4Elem(e, badge) {
     const div = document.createElement("div");
     div.innerHTML = `<span class="badge rounded-pill bg-primary">${badge}</span>`;
     e.addCue({ show: "always", position: "bottom", htmlElem: div });
   }
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key == "Delete") {
+      cy.$(":selected").remove();
+    }
+  });
 }
