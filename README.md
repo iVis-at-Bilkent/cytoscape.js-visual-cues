@@ -4,6 +4,8 @@ If you will contribute to the extension, please read the [developer guide](dev-g
 
 ## Description
 
+Inserts visual cues as HTML elements into the cytoscape container. You should set CSS `overflow: hidden;` for the container element since cues might overflow the cytoscape container.
+
 ## Demo
 
 1. Download the source codes or clone the repository with `git clone https://github.com/tarchintech/cytoscape.js-visual-cues.git`

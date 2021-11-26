@@ -108,19 +108,43 @@
         <div class="accordion-item">
           <h2 class="accordion-header" id="panelsStayOpen-headingOne2">
             <button class="accordion-button" type="button" data-bs-toggle="collapse"
-              data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="false"
-              aria-controls="panelsStayOpen-collapseOne">
+              data-bs-target="#panelsStayOpen-collapse2" aria-expanded="false"
+              aria-controls="panelsStayOpen-collapse2">
               API Functions
             </button>
           </h2>
-          <div id="panelsStayOpen-collapseOne2" class="accordion-collapse collapse show"
+          <div id="panelsStayOpen-collapse2" class="accordion-collapse collapse show"
             aria-labelledby="panelsStayOpen-headingOne">
             <div class="accordion-body d-flex flex-wrap justify-content-center">
-              <button id="addCue" type="button" class="btn btn-secondary m-1">Add cue(s) to selected</button>
-              <button id="removeCue" type="button" class="btn btn-secondary m-1">Remove cue(s) from selected</button>
-              <button id="updateCue" type="button" class="btn btn-secondary m-1">Update cue(s) of Selected</button>
-              <button id="showCue" type="button" class="btn btn-secondary m-1">Show cue(s) to Selected</button>
-              <button id="hideCue" type="button" class="btn btn-secondary m-1">Add cues to Selected</button>
+              <div class="dropdown m-1">
+                <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                  aria-expanded="false">
+                  Selected elements
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                  <li><a id="addCue" class="dropdown-item" href="#">Add cue(s)</a></li>
+                  <li><a id="removeCue" class="dropdown-item" href="#">Remove cue(s)</a></li>
+                  <li><a id="updateCue" class="dropdown-item" href="#">Update cue(s)</a></li>
+                  <li><a id="showCue" class="dropdown-item" href="#">Show cue(s)</a></li>
+                  <li><a id="hideCue" class="dropdown-item" href="#">Hide cue(s)</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="panelsStayOpen-heading3">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#panelsStayOpen-collapse3" aria-expanded="false"
+              aria-controls="panelsStayOpen-collapse3">
+              Use Cases
+            </button>
+          </h2>
+          <div id="panelsStayOpen-collapse3" class="accordion-collapse collapse"
+            aria-labelledby="panelsStayOpen-collapse3">
+            <div class="accordion-body d-flex flex-wrap justify-content-center">
+              <button id="degreeCentrality" type="button" class="btn btn-secondary m-1">Calculate degree
+                centrality</button>
             </div>
           </div>
         </div>
