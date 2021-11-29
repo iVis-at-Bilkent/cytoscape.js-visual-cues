@@ -106,36 +106,10 @@
           </div>
         </div>
         <div class="accordion-item">
-          <h2 class="accordion-header" id="panelsStayOpen-headingOne2">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse"
-              data-bs-target="#panelsStayOpen-collapse2" aria-expanded="false" aria-controls="panelsStayOpen-collapse2">
-              API Functions
-            </button>
-          </h2>
-          <div id="panelsStayOpen-collapse2" class="accordion-collapse collapse show"
-            aria-labelledby="panelsStayOpen-headingOne">
-            <div class="accordion-body d-flex flex-wrap justify-content-center">
-              <div class="dropdown m-1">
-                <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                  aria-expanded="false">
-                  Selected elements
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                  <li><a id="addCue" class="dropdown-item" href="#">Add cue(s)</a></li>
-                  <li><a id="removeCue" class="dropdown-item" href="#">Remove cue(s)</a></li>
-                  <li><a id="updateCue" class="dropdown-item" href="#">Update cue(s)</a></li>
-                  <li><a id="showCue" class="dropdown-item" href="#">Show cue(s)</a></li>
-                  <li><a id="hideCue" class="dropdown-item" href="#">Hide cue(s)</a></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="accordion-item">
           <h2 class="accordion-header" id="panelsStayOpen-heading3">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
               data-bs-target="#panelsStayOpen-collapse3" aria-expanded="false" aria-controls="panelsStayOpen-collapse3">
-              Use Cases
+              Sample Usage
             </button>
           </h2>
           <div id="panelsStayOpen-collapse3" class="accordion-collapse collapse"
@@ -155,6 +129,107 @@
               </div>
 
               <button id="showAllHidden" type="button" class="btn btn-secondary m-1">Show All</button>
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="panelsStayOpen-headingOne2">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+              data-bs-target="#panelsStayOpen-collapse2" aria-expanded="false" aria-controls="panelsStayOpen-collapse2">
+              API Functions
+            </button>
+          </h2>
+          <div id="panelsStayOpen-collapse2" class="accordion-collapse collapse show"
+            aria-labelledby="panelsStayOpen-headingOne">
+            <div class="accordion-body d-flex flex-wrap justify-content-center">
+              <div class="card m-1">
+                <div class="card-header">
+                  Cue Options
+                </div>
+                <div class="card-body">
+                  <form class="row g-2">
+                    <div class="col-6">
+                      <label class="form-label" for="cueId">id</label>
+                      <input type="text" class="form-control" id="cueId">
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label" for="showOpt">show</label>
+                      <select class="form-select" id="showOpt">
+                        <option value="1" selected>Tap</option>
+                        <option value="2">Hover</option>
+                        <option value="3">Always</option>
+                      </select>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label" for="htmlElem">HTML Element</label>
+                      <input type="text" class="form-control" id="htmlElem">
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label" for="imgElem">Image</label>
+                      <select class="form-select" id="imgElem">
+                        <option value="0" selected>Choose</option>
+                        <option value="1">Edit</option>
+                        <option value="2">Close</option>
+                        <option value="3">Add</option>
+                      </select>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label" for="posOpt">position</label>
+                      <select class="form-select" id="posOpt">
+                        <option value="top" selected>top</option>
+                        <option value="2">center</option>
+                        <option value="2">bottom</option>
+                        <option value="2">right</option>
+                        <option value="2">left</option>
+                        <option value="2">top-left</option>
+                        <option value="2">top-right</option>
+                        <option value="2">bottom-right</option>
+                        <option value="2">bottom-left</option>
+                        <option value="2" disabled>Edge options</option>
+                        <option value="3">target</option>
+                        <option value="3">source</option>
+                        <option value="3">center</option>
+                      </select>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label" for="zoom2hide">Zoom to hide</label>
+                      <input type="text" class="form-control" id="zoom2hide">
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label" for="marginX">margin X</label>
+                      <input type="text" class="form-control" id="marginX">
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label" for="marginY">margin Y</label>
+                      <input type="text" class="form-control" id="marginY">
+                    </div>
+                    <div class="col-6">
+                      <input class="form-check-input" type="checkbox" value="" id="isFixedSize" checked>
+                      <label class="form-check-label" for="isFixedSize">
+                        Is Fixed Size
+                      </label>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label" for="zIndex">Z-index</label>
+                      <input type="number" class="form-control" id="zIndex">
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <div class="break"></div>
+              <div class="dropdown m-1">
+                <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                  aria-expanded="false">
+                  Selected elements
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                  <li><a id="addCue" class="dropdown-item" href="#">Add cue(s)</a></li>
+                  <li><a id="removeCue" class="dropdown-item" href="#">Remove cue(s)</a></li>
+                  <li><a id="updateCue" class="dropdown-item" href="#">Update cue(s)</a></li>
+                  <li><a id="showCue" class="dropdown-item" href="#">Show cue(s)</a></li>
+                  <li><a id="hideCue" class="dropdown-item" href="#">Hide cue(s)</a></li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>

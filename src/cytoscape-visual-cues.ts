@@ -43,6 +43,30 @@ interface Str2CueData {
 const UPDATE_POPPER_WAIT = 100;
 let cueData: Str2CueData = {};
 
+function deepCopyOptions(o: CueOptions): CueOptions {
+  let o2: CueOptions = {
+    id: o.id,
+    show: o.show,
+    position: o.position,
+    marginX: o.marginX,
+    marginY: o.marginY,
+    onCueClicked: o.onCueClicked,
+    htmlElem: o.htmlElem.cloneNode(true) as HTMLElement,
+    imgData: null,
+    zoom2hide: o.zoom2hide,
+    isFixedSize: o.isFixedSize,
+    zIndex: o.zIndex,
+  };
+  if (o.imgData) {
+    o2.imgData = {
+      src: o.imgData.src,
+      width: o.imgData.width,
+      height: o.imgData.height,
+    };
+  }
+  return o2;
+}
+
 function setCueCoords(e, cues: Cues, cyZoom: number, zoom2hide: number) {
   // let the nodes resize first
   let ratio = 1;
@@ -100,11 +124,15 @@ function setCueCoordsOfChildren(e, zoom: number, zoom2hide: number) {
   }
 }
 
-function setCueVisibility(e, div: HTMLElement) {
+function setCueVisibility(e, cues: Cues) {
   if (!e.visible()) {
-    div.style.opacity = "0";
+    for (let id in cues) {
+      cues[id].htmlElem.style.opacity = "0";
+    }
   } else {
-    div.style.opacity = "1";
+    for (let id in cues) {
+      cues[id].htmlElem.style.opacity = "1";
+    }
   }
 }
 
@@ -156,16 +184,18 @@ export function addCue(cueOptions: CueOptions) {
   const cy = this.cy();
   const container = cy.container();
   for (let i = 0; i < eles.length; i++) {
+    const opts = deepCopyOptions(cueOptions);
     const e = eles[i];
     let htmlElem;
-    if (typeof cueOptions.htmlElem == "string") {
+    if (typeof opts.htmlElem == "string") {
       htmlElem = document.createElement("img");
-      htmlElem.width = cueOptions.imgData?.width;
-      htmlElem.height = cueOptions.imgData?.height;
-      cueOptions.htmlElem = htmlElem;
+      htmlElem.width = opts.imgData?.width;
+      htmlElem.height = opts.imgData?.height;
+      opts.htmlElem = htmlElem;
     } else {
-      container.appendChild(cueOptions.htmlElem);
-      htmlElem = cueOptions.htmlElem;
+      htmlElem = opts.htmlElem.cloneNode(true);
+      container.appendChild(htmlElem);
+      opts.htmlElem = htmlElem;
     }
     htmlElem.style.position = "absolute";
     htmlElem.style.top = "0px";
@@ -175,22 +205,17 @@ export function addCue(cueOptions: CueOptions) {
     const positionHandlerFn = debounce2(
       () => {
         const zoom = cy.zoom();
-        setCueCoords(e, cueData[id].cues, zoom, cueOptions.zoom2hide);
-        setCueCoordsOfChildren(e, zoom, cueOptions.zoom2hide);
+        setCueCoords(e, cueData[id].cues, zoom, opts.zoom2hide);
+        setCueCoordsOfChildren(e, zoom, opts.zoom2hide);
       },
       UPDATE_POPPER_WAIT,
       () => {
-        setCueVisibilities(
-          false,
-          cueData[id].cues,
-          cy.zoom(),
-          cueOptions.zoom2hide
-        );
+        setCueVisibilities(false, cueData[id].cues, cy.zoom(), opts.zoom2hide);
       }
     ).bind(this);
 
     const styleHandlerFn = debounce(() => {
-      setCueVisibility(e, htmlElem);
+      setCueVisibility(e, cueData[id].cues);
     }, UPDATE_POPPER_WAIT * 2).bind(this);
 
     e.on("position", positionHandlerFn);
@@ -201,12 +226,12 @@ export function addCue(cueOptions: CueOptions) {
     const existingCuesData = cueData[id];
     if (existingCuesData) {
     } else {
-      let cueId = cueOptions.id;
-      if (cueId === null || cueId === undefined) {
+      let cueId = opts.id;
+      if (cueId == null || cueId == undefined || cueId == "") {
         cueId = 0;
       }
       let cues: Cues = {};
-      cues[cueId] = cueOptions;
+      cues[cueId] = opts;
       cueData[id] = {
         cues: cues,
         graphElem: e,

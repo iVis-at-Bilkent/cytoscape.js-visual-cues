@@ -57,6 +57,40 @@ function onLoaded() {
     cy.$(":hidden").css("visibility", "visible");
   });
 
+  document.getElementById("addCue").addEventListener("click", () => {
+    let options = {
+      id: document.getElementById("cueId").value,
+      show: document.getElementById("showOpt").value,
+      position: document.getElementById("posOpt").value,
+      marginX: document.getElementById("marginX").value,
+      marginY: document.getElementById("marginY").value,
+      zoom2hide: document.getElementById("zoom2hide").value,
+      isFixedSize: document.getElementById("isFixedSize").checked,
+      zIndex: document.getElementById("zIndex").checked,
+    };
+    const htmlElem = document.getElementById("htmlElem").value;
+    if (htmlElem && htmlElem.length > 0) {
+      const div = document.createElement("div");
+      div.innerHTML = `<span class="badge rounded-pill bg-primary">${htmlElem}</span>`;
+      options.htmlElem = div;
+    }
+
+    const imgElemOpt = document.getElementById("imgElem").value;
+    if (imgElemOpt == "1") {
+      options.imgData = { width: 16, height: 16, src: "assets/edit.svg" };
+    } else if (imgElemOpt == "2") {
+      options.imgData = { width: 16, height: 16, src: "assets/close.svg" };
+    } else if (imgElemOpt == "3") {
+      options.imgData = { width: 16, height: 16, src: "assets/add.svg" };
+    }
+
+    const elems = cy.$(":selected");
+    for (let i = 0; i < elems.length; i++) {
+      const e = elems[i];
+      e.addCue(options);
+    }
+  });
+
   function buildCue4Elem(e, badge) {
     const div = document.createElement("div");
     div.innerHTML = `<span class="badge rounded-pill bg-primary">${badge}</span>`;
