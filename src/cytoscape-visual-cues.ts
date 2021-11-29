@@ -31,17 +31,19 @@ interface Cues {
   [key: string]: CueOptions;
 }
 
+interface CueData {
+  cues: Cues;
+  graphElem: any;
+  positionFn: Function;
+  styleFn: Function;
+}
+
 interface Str2CueData {
-  [key: string]: {
-    cues: Cues;
-    graphElem: any;
-    positionFn: Function;
-    styleFn: Function;
-  };
+  [key: string]: CueData;
 }
 
 const UPDATE_POPPER_WAIT = 100;
-let cueData: Str2CueData = {};
+let allCues: Str2CueData = {};
 
 function deepCopyOptions(o: CueOptions): CueOptions {
   let o2: CueOptions = {
@@ -67,44 +69,48 @@ function deepCopyOptions(o: CueOptions): CueOptions {
   return o2;
 }
 
-function setCueCoords(e, cues: Cues, cyZoom: number, zoom2hide: number) {
+function setCueCoords(cueData: CueData, cyZoom: number) {
   // let the nodes resize first
   let ratio = 1;
   let z1 = (cyZoom / 2) * ratio;
-  const bb = e.renderedBoundingBox({
+  const bb = cueData.graphElem.renderedBoundingBox({
     includeLabels: false,
     includeOverlays: false,
   });
 
-  for (let id in cues) {
-    const cue = cues[id];
-    const html = cue.htmlElem;
-    const w = html.clientWidth;
-    const h = html.clientHeight;
-    const deltaW4Scale = ((1 - z1) * w) / 2;
-    const deltaH4Scale = ((1 - z1) * h) / 2;
-    html.style.transform = `translate(${bb.x2 - deltaW4Scale - w * z1}px, ${
-      bb.y1 - deltaH4Scale
-    }px) scale(${z1})`;
+  for (let id in cueData.cues) {
+    const cue = cueData.cues[id];
+    const w = cue.htmlElem.clientWidth;
+    const h = cue.htmlElem.clientHeight;
+    const pos = cue.position;
+    let y = (bb.y1 + bb.y2) / 2 - h / 2;
+    let x = (bb.x2 + bb.x1) / 2 - w / 2;
+    if (pos == "bottom" || pos == "bottom-left" || pos == "bottom-right") {
+      y = bb.y2 - h / 2;
+    } else if (pos == "top" || pos == "top-left" || pos == "top-right") {
+      y = bb.y1 - h / 2;
+    }
+    if (pos == "right" || pos == "top-right" || pos == "bottom-right") {
+      x = bb.x2 - w / 2;
+    } else if (pos == "left" || pos == "top-left" || pos == "bottom-left") {
+      x = bb.x1 - w / 2;
+    }
+    cue.htmlElem.style.transform = `translate(${x}px, ${y}px) scale(${z1})`;
   }
 
-  setCueVisibilities(e.visible(), cues, cyZoom, zoom2hide);
+  const isS = cueData.graphElem.visible();
+  setCueVisibilities(isS, cueData.cues, cyZoom);
 }
 
-function setCueVisibilities(
-  isShow: boolean,
-  cues: Cues,
-  cyZoom: number,
-  zoom2hide: number
-) {
-  if (cyZoom <= zoom2hide) {
-    isShow = false;
-  }
-  let css = "0";
-  if (isShow) {
-    css = "1";
-  }
+function setCueVisibilities(isShow: boolean, cues: Cues, cyZoom: number) {
   for (let id in cues) {
+    if (cyZoom <= cues[id].zoom2hide) {
+      isShow = false;
+    }
+    let css = "0";
+    if (isShow) {
+      css = "1";
+    }
     cues[id].htmlElem.style.opacity = css;
   }
 }
@@ -116,9 +122,9 @@ function setCueCoordsOfChildren(e, zoom: number, zoom2hide: number) {
     if (child.isParent()) {
       setCueCoordsOfChildren(child, zoom, zoom2hide);
     } else {
-      const d = cueData[child.id()];
+      const d = allCues[child.id()];
       if (d) {
-        setCueCoords(d.graphElem, d.cues, zoom, zoom2hide);
+        setCueCoords(d, zoom);
       }
     }
   }
@@ -148,14 +154,14 @@ function showHideCues(
   for (let i = 0; i < eles.length; i++) {
     const e = eles[i];
     if (cueId !== undefined && cueId != null) {
-      const cue = cueData[e.id()].cues[cueId];
+      const cue = allCues[e.id()].cues[cueId];
       if (cue) {
         cue.htmlElem.style.opacity = opacity;
       } else {
         console.error("Can not found a cue with id: ", cueId);
       }
     } else {
-      const cues = cueData[e.id()].cues;
+      const cues = allCues[e.id()].cues;
       for (let id in cues) {
         cues[id].htmlElem.style.opacity = opacity;
       }
@@ -166,17 +172,17 @@ function showHideCues(
 function destroyCuesOfGraphElem(e: { target: any }) {
   const id = e.target.id();
   // remove cues from DOM
-  const cues = cueData[id].cues;
+  const cues = allCues[id].cues;
   for (let cueId in cues) {
     cues[cueId].htmlElem.remove();
   }
   // unbind previously bound functions
-  if (cueData[id].positionFn) {
-    cueData[id].graphElem.off("position", cueData[id].positionFn);
-    cueData[id].graphElem.off("style", cueData[id].styleFn);
-    e.target.cy().off("pan zoom resize", cueData[id].positionFn);
+  if (allCues[id].positionFn) {
+    allCues[id].graphElem.off("position", allCues[id].positionFn);
+    allCues[id].graphElem.off("style", allCues[id].styleFn);
+    e.target.cy().off("pan zoom resize", allCues[id].positionFn);
   }
-  delete cueData[id];
+  delete allCues[id];
 }
 
 export function addCue(cueOptions: CueOptions) {
@@ -193,9 +199,8 @@ export function addCue(cueOptions: CueOptions) {
       htmlElem.height = opts.imgData?.height;
       opts.htmlElem = htmlElem;
     } else {
-      htmlElem = opts.htmlElem.cloneNode(true);
+      htmlElem = opts.htmlElem;
       container.appendChild(htmlElem);
-      opts.htmlElem = htmlElem;
     }
     htmlElem.style.position = "absolute";
     htmlElem.style.top = "0px";
@@ -205,26 +210,38 @@ export function addCue(cueOptions: CueOptions) {
     const positionHandlerFn = debounce2(
       () => {
         const zoom = cy.zoom();
-        setCueCoords(e, cueData[id].cues, zoom, opts.zoom2hide);
+        setCueCoords(allCues[id], zoom);
         setCueCoordsOfChildren(e, zoom, opts.zoom2hide);
       },
       UPDATE_POPPER_WAIT,
       () => {
-        setCueVisibilities(false, cueData[id].cues, cy.zoom(), opts.zoom2hide);
+        setCueVisibilities(false, allCues[id].cues, cy.zoom());
       }
-    ).bind(this);
+    );
 
     const styleHandlerFn = debounce(() => {
-      setCueVisibility(e, cueData[id].cues);
-    }, UPDATE_POPPER_WAIT * 2).bind(this);
+      setCueVisibility(e, allCues[id].cues);
+    }, UPDATE_POPPER_WAIT * 2);
 
     e.on("position", positionHandlerFn);
     e.on("style", styleHandlerFn);
     e.on("remove", destroyCuesOfGraphElem);
     cy.on("pan zoom resize", positionHandlerFn);
 
-    const existingCuesData = cueData[id];
+    const existingCuesData = allCues[id];
     if (existingCuesData) {
+      let cueId = opts.id;
+      if (cueId == null || cueId == undefined || cueId == "") {
+        cueId = 0;
+        while (existingCuesData.cues[cueId]) {
+          cueId++;
+        }
+      }
+      if (existingCuesData.cues[cueId]) {
+        console.error(`A cue with id ${cueId} already exists for: ${id}`);
+        return;
+      }
+      existingCuesData.cues[cueId] = opts;
     } else {
       let cueId = opts.id;
       if (cueId == null || cueId == undefined || cueId == "") {
@@ -232,7 +249,7 @@ export function addCue(cueOptions: CueOptions) {
       }
       let cues: Cues = {};
       cues[cueId] = opts;
-      cueData[id] = {
+      allCues[id] = {
         cues: cues,
         graphElem: e,
         positionFn: positionHandlerFn,
@@ -248,10 +265,10 @@ export function removeCue(cueId: string | number) {
   for (let i = 0; i < eles.length; i++) {
     const e = eles[i];
     if (cueId !== undefined && cueId != null) {
-      const cue = cueData[e.id()].cues[cueId];
+      const cue = allCues[e.id()].cues[cueId];
       if (cue) {
         cue.htmlElem.remove();
-        delete cueData[e.id()].cues[cueId];
+        delete allCues[e.id()].cues[cueId];
       } else {
         console.error("Can not found a cue with id: ", cueId);
       }
@@ -270,9 +287,9 @@ export function updateCue(cueOptions: CueOptions) {
   }
   for (let i = 0; i < eles.length; i++) {
     const e = eles[i];
-    const cue = cueData[e.id()].cues[cueId];
+    const cue = allCues[e.id()].cues[cueId];
     if (cue) {
-      cueData[e.id()].cues[cueId] = cueOptions;
+      allCues[e.id()].cues[cueId] = cueOptions;
     } else {
       console.error("Can not found a cue with id: ", cueId);
     }
