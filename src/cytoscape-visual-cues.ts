@@ -69,6 +69,77 @@ function deepCopyOptions(o: CueOptions): CueOptions {
   return o2;
 }
 
+/**
+ * Finds the intersection point between the rectangle with parallel sides to the x and y
+ * axes the half-line pointing towards (x,y) originating from the middle of the rectangle
+ * Note: the function works given min[XY] <= max[XY],
+ *       even though minY may not be the "top" of the rectangle
+ *       because the coordinate system is flipped.
+ * Note: if the input is inside the rectangle,
+ *       the line segment wouldn't have an intersection with the rectangle,
+ *       but the projected half-line does.
+ * Warning: passing in the middle of the rectangle will return the midpoint itself
+ *          there are infinitely many half-lines projected in all directions,
+ *          so let's just shortcut to midpoint (GIGO).
+ *
+ * @param x:Number x coordinate of point to build the half-line from
+ * @param y:Number y coordinate of point to build the half-line from
+ * @param minX:Number the "left" side of the rectangle
+ * @param minY:Number the "top" side of the rectangle
+ * @param maxX:Number the "right" side of the rectangle
+ * @param maxY:Number the "bottom" side of the rectangle
+ * @return an object with x and y members for the intersection
+ * @throws if validate == true and (x,y) is inside the rectangle
+ * @author TWiStErRob
+ * @licence Dual CC0/WTFPL/Unlicence, whatever floats your boat
+ * @see <a href="http://stackoverflow.com/a/31254199/253468">source</a>
+ * @see <a href="http://stackoverflow.com/a/18292964/253468">based on</a>
+ */
+function pointOnRect(x, y, minX, minY, maxX, maxY) {
+  let midX = (minX + maxX) / 2;
+  let midY = (minY + maxY) / 2;
+  // if (midX - x == 0) -> m == ±Inf -> minYx/maxYx == x (because value / ±Inf = ±0)
+  let m = (midY - y) / (midX - x);
+
+  if (x <= midX) {
+    // check "left" side
+    let minXy = m * (minX - x) + y;
+    if (minY <= minXy && minXy <= maxY) return { x: minX, y: minXy };
+  }
+
+  if (x >= midX) {
+    // check "right" side
+    let maxXy = m * (maxX - x) + y;
+    if (minY <= maxXy && maxXy <= maxY) return { x: maxX, y: maxXy };
+  }
+
+  if (y <= midY) {
+    // check "top" side
+    let minYx = (minY - y) / m + x;
+    if (minX <= minYx && minYx <= maxX) return { x: minYx, y: minY };
+  }
+
+  if (y >= midY) {
+    // check "bottom" side
+    let maxYx = (maxY - y) / m + x;
+    if (minX <= maxYx && maxYx <= maxX) return { x: maxYx, y: maxY };
+  }
+
+  // edge case when finding midpoint intersection: m = 0/0 = NaN
+  if (x === midX && y === midY) return { x: x, y: y };
+
+  // Should never happen :) If it does, please tell me!
+  throw (
+    "Cannot find intersection for " +
+    [x, y] +
+    " inside rectangle " +
+    [minX, minY] +
+    " - " +
+    [maxX, maxY] +
+    "."
+  );
+}
+
 function setCueCoords(cueData: CueData, cyZoom: number) {
   // let the nodes resize first
   let ratio = 1;
@@ -77,6 +148,7 @@ function setCueCoords(cueData: CueData, cyZoom: number) {
     includeLabels: false,
     includeOverlays: false,
   });
+  const isNode = cueData.graphElem.isNode();
 
   for (let id in cueData.cues) {
     const cue = cueData.cues[id];
@@ -85,6 +157,14 @@ function setCueCoords(cueData: CueData, cyZoom: number) {
     const pos = cue.position;
     let y = (bb.y1 + bb.y2) / 2 - h / 2;
     let x = (bb.x2 + bb.x1) / 2 - w / 2;
+    if (isNode && (pos == "target" || pos == "source")) {
+      console.error(`'${pos}' is invalid cue position for a node`);
+      return;
+    }
+    if (!isNode && pos != "target" && pos != "source" && pos != "center") {
+      console.error(`'${pos}' is invalid cue position for an edge`);
+      return;
+    }
     if (pos == "bottom" || pos == "bottom-left" || pos == "bottom-right") {
       y = bb.y2 - h / 2;
     } else if (pos == "top" || pos == "top-left" || pos == "top-right") {
@@ -94,6 +174,37 @@ function setCueCoords(cueData: CueData, cyZoom: number) {
       x = bb.x2 - w / 2;
     } else if (pos == "left" || pos == "top-left" || pos == "bottom-left") {
       x = bb.x1 - w / 2;
+    }
+
+    if (pos == "source") {
+      const b = cueData.graphElem.source().renderedBoundingBox({
+        includeLabels: false,
+        includeOverlays: false,
+      });
+      const tgtEnd = cueData.graphElem.renderedTargetEndpoint();
+      const l = Math.min(b.x1, b.x2);
+      const t = Math.min(b.y1, b.y2);
+      const r = Math.max(b.x1, b.x2);
+      const bo = Math.max(b.y1, b.y2);
+      const p = pointOnRect(tgtEnd.x, tgtEnd.y, l, t, r, bo);
+      x = p.x - w / 2;
+      y = p.y - h / 2;
+    }
+    if (pos == "target") {
+      const b = cueData.graphElem.target().renderedBoundingBox({
+        includeLabels: false,
+        includeOverlays: false,
+      });
+      const srcEnd = cueData.graphElem.renderedSourceEndpoint();
+      const l = Math.min(b.x1, b.x2);
+      const t = Math.min(b.y1, b.y2);
+      const r = Math.max(b.x1, b.x2);
+      const bo = Math.max(b.y1, b.y2);
+      const p = pointOnRect(srcEnd.x, srcEnd.y, l, t, r, bo);
+      x = p.x - w / 2;
+      y = p.y - h / 2;
+      // x = tgtEnd.x - w / 2;
+      // y = tgtEnd.y - h / 2;
     }
     cue.htmlElem.style.transform = `translate(${x}px, ${y}px) scale(${z1})`;
   }
@@ -178,7 +289,12 @@ function destroyCuesOfGraphElem(e: { target: any }) {
   }
   // unbind previously bound functions
   if (allCues[id].positionFn) {
-    allCues[id].graphElem.off("position", allCues[id].positionFn);
+    if (allCues[id].graphElem.isEdge()) {
+      allCues[id].graphElem.source().off("position", allCues[id].positionFn);
+      allCues[id].graphElem.target().off("position", allCues[id].positionFn);
+    } else {
+      allCues[id].graphElem.off("position", allCues[id].positionFn);
+    }
     allCues[id].graphElem.off("style", allCues[id].styleFn);
     e.target.cy().off("pan zoom resize", allCues[id].positionFn);
   }
@@ -222,8 +338,12 @@ export function addCue(cueOptions: CueOptions) {
     const styleHandlerFn = debounce(() => {
       setCueVisibility(e, allCues[id].cues);
     }, UPDATE_POPPER_WAIT * 2);
-
-    e.on("position", positionHandlerFn);
+    if (e.isEdge()) {
+      e.source().on("position", positionHandlerFn);
+      e.target().on("position", positionHandlerFn);
+    } else {
+      e.on("position", positionHandlerFn);
+    }
     e.on("style", styleHandlerFn);
     e.on("remove", destroyCuesOfGraphElem);
     cy.on("pan zoom resize", positionHandlerFn);

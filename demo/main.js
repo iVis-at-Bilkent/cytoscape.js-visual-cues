@@ -103,9 +103,16 @@ function onLoaded() {
     }
   });
 
-  const n = cy.nodes()[0];
+  const e = cy.edges()[0];
   const div = document.createElement("div");
   div.innerHTML = `<span class="badge rounded-pill bg-primary">12</span>`;
+
+  // n.addCue({ htmlElem: div, position: "center" });
+  e.addCue({ htmlElem: div, position: "target" });
+  e.addCue({ htmlElem: div, position: "source" });
+  e.addCue({ htmlElem: div, position: "center" });
+
+  const n = cy.nodes()[0];
   n.addCue({ htmlElem: div, position: "top" });
   n.addCue({ htmlElem: div, position: "bottom" });
   n.addCue({ htmlElem: div, position: "right" });
