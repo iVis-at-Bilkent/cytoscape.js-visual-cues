@@ -22,15 +22,95 @@ function onLoaded() {
           },
         },
       },
+      {
+        selector: "node.rect",
+        style: {
+          shape: "rectangle",
+        },
+      },
+      {
+        selector: "node.barrel",
+        style: {
+          shape: "barrel",
+        },
+      },
+      {
+        selector: "node.circle",
+        style: {
+          shape: "ellipse",
+        },
+      },
+      {
+        selector: "edge.solid",
+        style: {
+          "line-style": "solid",
+        },
+      },
+      {
+        selector: "edge.dashed",
+        style: {
+          "line-style": "dashed",
+        },
+      },
     ],
   }));
 
+  let toastList = [];
   cy.layoutUtilities({ desiredAspectRatio: cy.width() / cy.height() });
-
-  // change the below code to get an instance of your own extension
-  // const api = cy.visualCues();
-
-  loadSample("sampleGraph50");
+  window.graph4cues = {
+    nodes: [
+      { data: { id: "n18" }, classes: "barrel" },
+      { data: { id: "n19" }, classes: "barrel" },
+      { data: { id: "n20" }, classes: "barrel" },
+      { data: { id: "n1" }, classes: "rect" },
+      { data: { id: "n2" }, classes: "circle" },
+      { data: { id: "n3" }, classes: "rect" },
+      { data: { id: "n4" }, classes: "rect" },
+      { data: { id: "n5" }, classes: "circle" },
+      { data: { id: "n6" }, classes: "rect" },
+      { data: { id: "n7" }, classes: "circle" },
+      { data: { id: "n8" }, classes: "rect" },
+      { data: { id: "n9" }, classes: "rect" },
+      { data: { id: "n10" }, classes: "circle" },
+      { data: { id: "n11" }, classes: "rect" },
+      { data: { id: "n12" }, classes: "circle" },
+      { data: { id: "n13" }, classes: "rect" },
+      { data: { id: "n14" }, classes: "circle" },
+      { data: { id: "n15" }, classes: "rect" },
+      { data: { id: "n16" }, classes: "circle" },
+      { data: { id: "n17" }, classes: "circle" },
+    ],
+    edges: [
+      { data: { source: "n19", target: "n20" }, classes: "solid" },
+      { data: { source: "n1", target: "n2" }, classes: "dashed" },
+      { data: { source: "n1", target: "n3" }, classes: "solid" },
+      { data: { source: "n2", target: "n3" }, classes: "dashed" },
+      { data: { source: "n3", target: "n4" }, classes: "solid" },
+      { data: { source: "n4", target: "n5" }, classes: "dashed" },
+      { data: { source: "n3", target: "n6" }, classes: "solid" },
+      { data: { source: "n2", target: "n7" }, classes: "dashed" },
+      { data: { source: "n3", target: "n7" }, classes: "solid" },
+      { data: { source: "n5", target: "n6" }, classes: "dashed" },
+      { data: { source: "n6", target: "n7" }, classes: "solid" },
+      { data: { source: "n6", target: "n8" }, classes: "dashed" },
+      { data: { source: "n8", target: "n9" }, classes: "solid" },
+      { data: { source: "n8", target: "n10" }, classes: "dashed" },
+      { data: { source: "n8", target: "n11" }, classes: "solid" },
+      { data: { source: "n9", target: "n11" }, classes: "dashed" },
+      { data: { source: "n11", target: "n12" }, classes: "solid" },
+      { data: { source: "n11", target: "n13" }, classes: "solid" },
+      { data: { source: "n11", target: "n14" }, classes: "solid" },
+      { data: { source: "n13", target: "n15" }, classes: "dashed" },
+      { data: { source: "n13", target: "n16" }, classes: "solid" },
+      { data: { source: "n15", target: "n16" }, classes: "dashed" },
+      { data: { source: "n15", target: "n17" }, classes: "dashed" },
+    ],
+  };
+  loadSample("graph4cues");
+  initToasts();
+  hideSomeNodes();
+  addSampleCues();
+  addSpecialCues();
 
   document.getElementById("degreeCentrality").addEventListener("click", () => {
     const elems = cy.nodes();
@@ -42,10 +122,18 @@ function onLoaded() {
   });
 
   document.getElementById("deleteSelected").addEventListener("click", () => {
+    if (!haveAnySelected()) {
+      toastList[0].show();
+      return;
+    }
     cy.$(":selected").remove();
   });
 
   document.getElementById("hideSelected").addEventListener("click", () => {
+    if (!haveAnySelected()) {
+      toastList[0].show();
+      return;
+    }
     cy.$(":selected").css("visibility", "hidden");
     const hiddenNodes = cy.nodes(":hidden");
     for (let i = 0; i < hiddenNodes.length; i++) {
@@ -131,7 +219,7 @@ function onLoaded() {
   function haveAnySelected() {
     return cy.$(":selected").length > 0;
   }
-  let toastList = [];
+
   function initToasts() {
     let toastElList = [].slice.call(document.querySelectorAll(".toast"));
     toastList = toastElList.map(function (toastEl) {
@@ -149,78 +237,182 @@ function onLoaded() {
     }
   });
 
-  const e = cy.edges()[0];
-  const div = document.createElement("div");
-  div.innerHTML = `<span class="badge rounded-pill bg-primary">12</span>`;
+  function addSampleCues() {
+    const e = cy.edges()[0];
+    const div = document.createElement("div");
+    div.innerHTML = `<span class="badge rounded-pill bg-primary">12</span>`;
 
-  const fn = () => {
-    console.log("asd");
-  };
-  // n.addCue({ htmlElem: div, position: "center" });
-  e.addCue({
-    htmlElem: div,
-    position: "target",
-    onCueClicked: fn,
-    zIndex: 100,
-    show: "select",
-  });
-  e.addCue({
-    htmlElem: div,
-    position: "source",
-    onCueClicked: fn,
-    zIndex: 100,
-    show: "hover",
-  });
-  e.addCue({
-    htmlElem: div,
-    position: "center",
-    zIndex: 100,
-  });
+    const fn = () => {
+      console.log("asd");
+    };
+    e.addCue({
+      htmlElem: div,
+      position: "target",
+      onCueClicked: fn,
+      zIndex: 100,
+      show: "select",
+    });
+    e.addCue({
+      htmlElem: div,
+      position: "source",
+      onCueClicked: fn,
+      zIndex: 100,
+      show: "hover",
+    });
+    e.addCue({
+      htmlElem: div,
+      position: "center",
+      zIndex: 100,
+    });
 
-  const n = cy.nodes()[0];
-  n.addCue({ htmlElem: div, position: "top", onCueClicked: fn, zIndex: 100 });
-  n.addCue({
-    htmlElem: div,
-    position: "bottom",
-    onCueClicked: fn,
-    zIndex: 100,
-    isFixedSize: true,
-  });
-  n.addCue({ htmlElem: div, position: "right", onCueClicked: fn, zIndex: 100 });
-  n.addCue({ htmlElem: div, position: "left", onCueClicked: fn, zIndex: 100 });
-  n.addCue({
-    htmlElem: div,
-    position: "center",
-    onCueClicked: fn,
-    zIndex: 100,
-  });
-  n.addCue({
-    htmlElem: div,
-    position: "top-left",
-    onCueClicked: fn,
-    zIndex: 100,
-  });
-  n.addCue({
-    htmlElem: div,
-    position: "top-right",
-    onCueClicked: fn,
-    zIndex: 100,
-    zoom2hide: 3,
-  });
-  n.addCue({
-    htmlElem: div,
-    position: "bottom-right",
-    onCueClicked: fn,
-    zIndex: 100,
-    zoom2hide: 2,
-  });
-  n.addCue({
-    htmlElem: div,
-    position: "bottom-left",
-    onCueClicked: fn,
-    zIndex: 100,
-    zoom2hide: 1,
-  });
+    const n = cy.nodes()[0];
+    n.addCue({ htmlElem: div, position: "top", onCueClicked: fn, zIndex: 100 });
+    n.addCue({
+      htmlElem: div,
+      position: "bottom",
+      onCueClicked: fn,
+      zIndex: 100,
+      isFixedSize: true,
+    });
+    n.addCue({
+      htmlElem: div,
+      position: "right",
+      onCueClicked: fn,
+      zIndex: 100,
+    });
+    n.addCue({
+      htmlElem: div,
+      position: "left",
+      onCueClicked: fn,
+      zIndex: 100,
+    });
+    n.addCue({
+      htmlElem: div,
+      position: "center",
+      onCueClicked: fn,
+      zIndex: 100,
+    });
+    n.addCue({
+      htmlElem: div,
+      position: "top-left",
+      onCueClicked: fn,
+      zIndex: 100,
+    });
+    n.addCue({
+      htmlElem: div,
+      position: "top-right",
+      onCueClicked: fn,
+      zIndex: 100,
+      zoom2hide: 3,
+    });
+    n.addCue({
+      htmlElem: div,
+      position: "bottom-right",
+      onCueClicked: fn,
+      zIndex: 100,
+      zoom2hide: 2,
+    });
+    n.addCue({
+      htmlElem: div,
+      position: "bottom-left",
+      onCueClicked: fn,
+      zIndex: 100,
+      zoom2hide: 1,
+    });
+  }
 
-  initToasts();
+  function hideSomeNodes() {
+    const nodeIds = ["n2", "n7", "n16", "n5", "n12"];
+    for (const id of nodeIds) {
+      cy.nodes("#" + id).css("visibility", "hidden");
+      cy.nodes("#" + id)
+        .connectedEdges()
+        .css("visibility", "hidden");
+    }
+  }
+
+  function addSpecialCues() {
+    const showNei = (e) => {
+      e.neighborhood().css("visibility", "visible");
+      cy.layout({ name: "fcose", animate: true, randomize: false }).run();
+    };
+
+    const imgSize = 32;
+    let options4Rect = {
+      show: "always",
+      position: "top-right",
+      zIndex: 10,
+      onCueClicked: showNei,
+      imgData: {
+        width: imgSize,
+        height: imgSize,
+        src: "assets/expand-rectangle.svg",
+      },
+    };
+    cy.nodes(".rect").addCue(options4Rect);
+
+    let options4Circle = {
+      show: "always",
+      position: "top-left",
+      zIndex: 10,
+      onCueClicked: showNei,
+      imgData: {
+        width: imgSize,
+        height: imgSize,
+        src: "assets/expand-ellipse.svg",
+      },
+    };
+    cy.nodes(".circle").addCue(options4Circle);
+
+    const showDashedNei = (e) => {
+      const edges = e.neighborhood("edge.dashed");
+      edges.css("visibility", "visible");
+      edges.connectedNodes().css("visibility", "visible");
+      cy.layout({ name: "fcose", animate: true, randomize: false }).run();
+    };
+
+    let options4RectDashed = {
+      show: "always",
+      position: "bottom-left",
+      zIndex: 10,
+      onCueClicked: showDashedNei,
+      imgData: {
+        width: imgSize,
+        height: imgSize,
+        src: "assets/expand-rectangle-dashed.svg",
+      },
+    };
+    const rectNodes = cy.nodes(".rect");
+    for (let i = 0; i < rectNodes.length; i++) {
+      const hasHidden =
+        rectNodes[i]
+          .neighborhood("edge.dashed")
+          .filter((x) => x.css("visibility") == "hidden").length > 0;
+      if (hasHidden) {
+        rectNodes[i].addCue(options4RectDashed);
+      }
+    }
+
+    let options4CircleDashed = {
+      show: "always",
+      position: "bottom-right",
+      zIndex: 10,
+      onCueClicked: showDashedNei,
+      imgData: {
+        width: imgSize,
+        height: imgSize,
+        src: "assets/expand-ellipse-dashed.svg",
+      },
+    };
+    const circleNodes = cy.nodes(".circle");
+    for (let i = 0; i < circleNodes.length; i++) {
+      const hasHidden =
+        circleNodes[i]
+          .neighborhood("edge.dashed")
+          .filter((x) => x.css("visibility") == "hidden").length > 0;
+      if (hasHidden) {
+        circleNodes[i].addCue(options4CircleDashed);
+      }
+    }
+  }
 }

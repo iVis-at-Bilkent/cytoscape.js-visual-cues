@@ -399,6 +399,9 @@ function showHideCues(eles, cueId: StrNum, isShow: boolean) {
 function destroyCuesOfGraphElem(e: { target: any }) {
   const id = e.target.id();
   // remove cues from DOM
+  if (!allCues[id]) {
+    return;
+  }
   const cues = allCues[id].cues;
   for (let cueId in cues) {
     cues[cueId].htmlElem.remove();
