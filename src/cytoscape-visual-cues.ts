@@ -1,4 +1,4 @@
-import { debounce, debounce2 } from "./helper";
+import { debounce2 } from "./helper";
 
 type NodePosition =
   | "top"
@@ -13,13 +13,17 @@ type NodePosition =
 
 type EdgePosition = "target" | "source" | "center";
 
+type Events2show = "mouseover" | "mouseout" | "style" | "select" | "unselect";
+
+type StrNum = string | number | undefined;
+
 interface CueOptions {
   id: number | string;
-  show: "tap" | "hover" | "always";
+  show: "select" | "hover" | "always";
   position: NodePosition | EdgePosition;
   marginX: string | number;
   marginY: string | number;
-  onCueClicked: (ele: any) => void;
+  onCueClicked: ((ele: any) => void) | undefined;
   htmlElem: HTMLElement;
   imgData: { width: number; height: number; src: string } | null;
   zoom2hide: number;
@@ -45,6 +49,19 @@ interface Str2CueData {
 const UPDATE_POPPER_WAIT = 100;
 let allCues: Str2CueData = {};
 
+function fillEmptyOptions(o: CueOptions) {
+  if (!o.show) {
+    o.show = "always";
+  }
+  if (o.isFixedSize == undefined || o.isFixedSize == null) {
+    o.isFixedSize = false;
+  }
+}
+
+/** create a deep copy of options since the same HTML element might used to make multiple calls
+ * @param  {CueOptions} o
+ * @returns CueOptions
+ */
 function deepCopyOptions(o: CueOptions): CueOptions {
   let o2: CueOptions = {
     id: o.id,
@@ -208,21 +225,16 @@ function setCueCoords(cueData: CueData, cyZoom: number) {
     }
     cue.htmlElem.style.transform = `translate(${x}px, ${y}px) scale(${z1})`;
   }
-
-  const isS = cueData.graphElem.visible();
-  setCueVisibilities(isS, cueData.cues, cyZoom);
 }
 
-function setCueVisibilities(isShow: boolean, cues: Cues, cyZoom: number) {
+function switchCueOpacities(cues: Cues, prevOpacities: any, isHide: boolean) {
   for (let id in cues) {
-    if (cyZoom <= cues[id].zoom2hide) {
-      isShow = false;
+    if (isHide) {
+      prevOpacities[id] = cues[id].htmlElem.style.opacity;
+      cues[id].htmlElem.style.opacity = "0";
+    } else {
+      cues[id].htmlElem.style.opacity = prevOpacities[id];
     }
-    let css = "0";
-    if (isShow) {
-      css = "1";
-    }
-    cues[id].htmlElem.style.opacity = css;
   }
 }
 
@@ -241,23 +253,34 @@ function setCueCoordsOfChildren(e, zoom: number, zoom2hide: number) {
   }
 }
 
-function setCueVisibility(e, cues: Cues) {
+function setCueVisibility(e, cues: Cues, eventType: Events2show) {
   if (!e.visible()) {
     for (let id in cues) {
       cues[id].htmlElem.style.opacity = "0";
     }
   } else {
     for (let id in cues) {
-      cues[id].htmlElem.style.opacity = "1";
+      const showType = cues[id].show;
+      if (showType == "always") {
+        cues[id].htmlElem.style.opacity = "1";
+      } else if (showType == "hover") {
+        if (eventType == "mouseout") {
+          cues[id].htmlElem.style.opacity = "0";
+        } else if (eventType == "mouseover") {
+          cues[id].htmlElem.style.opacity = "1";
+        }
+      } else if (showType == "select") {
+        if (eventType == "select") {
+          cues[id].htmlElem.style.opacity = "1";
+        } else if (eventType == "unselect") {
+          cues[id].htmlElem.style.opacity = "0";
+        }
+      }
     }
   }
 }
 
-function showHideCues(
-  eles,
-  cueId: string | number | undefined,
-  isShow: boolean
-) {
+function showHideCues(eles, cueId: StrNum, isShow: boolean) {
   let opacity = "0";
   if (isShow) {
     opacity = "1";
@@ -301,10 +324,33 @@ function destroyCuesOfGraphElem(e: { target: any }) {
   delete allCues[id];
 }
 
+function onElemMove(e, cueOpacities, zoom2hide, isSwapOpacity: boolean) {
+  const zoom = e.cy().zoom();
+  const id = e.id();
+  setCueCoords(allCues[id], zoom);
+  setCueCoordsOfChildren(e, zoom, zoom2hide);
+  if (isSwapOpacity) {
+    switchCueOpacities(allCues[id].cues, cueOpacities, false);
+  }
+}
+
+function addEventListeners4Elem(e, cy, positionHandlerFn, styleHandlerFn) {
+  if (e.isEdge()) {
+    e.source().on("position", positionHandlerFn);
+    e.target().on("position", positionHandlerFn);
+  } else {
+    e.on("position", positionHandlerFn);
+  }
+  e.on("style mouseover mouseout select unselect", styleHandlerFn);
+  e.on("remove", destroyCuesOfGraphElem);
+  cy.on("pan zoom resize", positionHandlerFn);
+}
+
 export function addCue(cueOptions: CueOptions) {
   const eles = this;
   const cy = this.cy();
   const container = cy.container();
+  fillEmptyOptions(cueOptions);
   for (let i = 0; i < eles.length; i++) {
     const opts = deepCopyOptions(cueOptions);
     const e = eles[i];
@@ -321,32 +367,32 @@ export function addCue(cueOptions: CueOptions) {
     htmlElem.style.position = "absolute";
     htmlElem.style.top = "0px";
     htmlElem.style.left = "0px";
+    htmlElem.style.zIndex = cueOptions.zIndex;
+    if (opts.show != "always") {
+      htmlElem.style.opacity = "0";
+    }
+
+    htmlElem.addEventListener("click", () => {
+      if (cueOptions.onCueClicked) {
+        cueOptions.onCueClicked(e);
+      }
+    });
 
     const id = e.id() + "";
+    let cueOpacities = {};
     const positionHandlerFn = debounce2(
       () => {
-        const zoom = cy.zoom();
-        setCueCoords(allCues[id], zoom);
-        setCueCoordsOfChildren(e, zoom, opts.zoom2hide);
+        onElemMove(e, cueOpacities, opts.zoom2hide, true);
       },
       UPDATE_POPPER_WAIT,
       () => {
-        setCueVisibilities(false, allCues[id].cues, cy.zoom());
+        switchCueOpacities(allCues[id].cues, cueOpacities, true);
       }
     );
 
-    const styleHandlerFn = debounce(() => {
-      setCueVisibility(e, allCues[id].cues);
-    }, UPDATE_POPPER_WAIT * 2);
-    if (e.isEdge()) {
-      e.source().on("position", positionHandlerFn);
-      e.target().on("position", positionHandlerFn);
-    } else {
-      e.on("position", positionHandlerFn);
-    }
-    e.on("style", styleHandlerFn);
-    e.on("remove", destroyCuesOfGraphElem);
-    cy.on("pan zoom resize", positionHandlerFn);
+    const styleHandlerFn = (event) => {
+      setCueVisibility(e, allCues[id].cues, event.type);
+    };
 
     const existingCuesData = allCues[id];
     if (existingCuesData) {
@@ -363,6 +409,7 @@ export function addCue(cueOptions: CueOptions) {
       }
       existingCuesData.cues[cueId] = opts;
     } else {
+      addEventListeners4Elem(e, cy, positionHandlerFn, styleHandlerFn);
       let cueId = opts.id;
       if (cueId == null || cueId == undefined || cueId == "") {
         cueId = 0;
@@ -376,7 +423,7 @@ export function addCue(cueOptions: CueOptions) {
         styleFn: styleHandlerFn,
       };
     }
-    positionHandlerFn();
+    onElemMove(e, cueOpacities, opts.zoom2hide, false);
   }
 }
 
@@ -416,12 +463,12 @@ export function updateCue(cueOptions: CueOptions) {
   }
 }
 
-export function showCue(cueId: string | number | undefined) {
+export function showCue(cueId: StrNum) {
   const eles = this;
   showHideCues(eles, cueId, true);
 }
 
-export function hideCue(cueId: string | number | undefined) {
+export function hideCue(cueId: StrNum) {
   const eles = this;
   showHideCues(eles, cueId, false);
 }

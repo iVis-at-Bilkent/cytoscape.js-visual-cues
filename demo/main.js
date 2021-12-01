@@ -107,19 +107,68 @@ function onLoaded() {
   const div = document.createElement("div");
   div.innerHTML = `<span class="badge rounded-pill bg-primary">12</span>`;
 
+  const fn = () => {
+    console.log("asd");
+  };
   // n.addCue({ htmlElem: div, position: "center" });
-  e.addCue({ htmlElem: div, position: "target" });
-  e.addCue({ htmlElem: div, position: "source" });
-  e.addCue({ htmlElem: div, position: "center" });
+  e.addCue({
+    htmlElem: div,
+    position: "target",
+    onCueClicked: fn,
+    zIndex: 100,
+    show: "select"
+  });
+  e.addCue({
+    htmlElem: div,
+    position: "source",
+    onCueClicked: fn,
+    zIndex: 100,
+    show: "hover"
+  });
+  e.addCue({
+    htmlElem: div,
+    position: "center",
+    zIndex: 100,
+  });
 
   const n = cy.nodes()[0];
-  n.addCue({ htmlElem: div, position: "top" });
-  n.addCue({ htmlElem: div, position: "bottom" });
-  n.addCue({ htmlElem: div, position: "right" });
-  n.addCue({ htmlElem: div, position: "left" });
-  n.addCue({ htmlElem: div, position: "center" });
-  n.addCue({ htmlElem: div, position: "top-left" });
-  n.addCue({ htmlElem: div, position: "top-right" });
-  n.addCue({ htmlElem: div, position: "bottom-right" });
-  n.addCue({ htmlElem: div, position: "bottom-left" });
+  n.addCue({ htmlElem: div, position: "top", onCueClicked: fn, zIndex: 100 });
+  n.addCue({
+    htmlElem: div,
+    position: "bottom",
+    onCueClicked: fn,
+    zIndex: 100,
+  });
+  n.addCue({ htmlElem: div, position: "right", onCueClicked: fn, zIndex: 100 });
+  n.addCue({ htmlElem: div, position: "left", onCueClicked: fn, zIndex: 100 });
+  n.addCue({
+    htmlElem: div,
+    position: "center",
+    onCueClicked: fn,
+    zIndex: 100,
+  });
+  n.addCue({
+    htmlElem: div,
+    position: "top-left",
+    onCueClicked: fn,
+    zIndex: 100,
+  });
+  n.addCue({
+    htmlElem: div,
+    position: "top-right",
+    onCueClicked: fn,
+    zIndex: 100,
+  });
+  n.addCue({
+    htmlElem: div,
+    position: "bottom-right",
+    onCueClicked: fn,
+    zIndex: 100,
+  });
+  n.addCue({
+    htmlElem: div,
+    position: "bottom-left",
+    onCueClicked: fn,
+    zIndex: 100,
+  });
 }
