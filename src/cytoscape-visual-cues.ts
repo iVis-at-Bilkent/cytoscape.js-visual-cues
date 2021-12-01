@@ -1,6 +1,6 @@
 import { debounce2 } from "./helper";
 
-type NodePosition =
+type NodeCuePosition =
   | "top"
   | "center"
   | "bottom"
@@ -11,7 +11,7 @@ type NodePosition =
   | "bottom-right"
   | "bottom-left";
 
-type EdgePosition = "target" | "source" | "center";
+type EdgeCuePosition = "target" | "source" | "center";
 
 type Events2show = "mouseover" | "mouseout" | "style" | "select" | "unselect";
 
@@ -20,7 +20,7 @@ type StrNum = string | number | undefined;
 interface CueOptions {
   id: number | string;
   show: "select" | "hover" | "always";
-  position: NodePosition | EdgePosition;
+  position: NodeCuePosition | EdgeCuePosition;
   marginX: string | number;
   marginY: string | number;
   onCueClicked: ((ele: any) => void) | undefined;
@@ -46,7 +46,13 @@ interface Str2CueData {
   [key: string]: CueData;
 }
 
+interface Point {
+  x: number;
+  y: number;
+}
+
 const UPDATE_POPPER_WAIT = 100;
+const STYLE_EVENTS = "style mouseover mouseout select unselect";
 let allCues: Str2CueData = {};
 
 function fillEmptyOptions(o: CueOptions) {
@@ -76,6 +82,12 @@ function deepCopyOptions(o: CueOptions): CueOptions {
     isFixedSize: o.isFixedSize,
     zIndex: o.zIndex,
   };
+  if (isNumber(o2.marginX)) {
+    o2.marginX = Number(o2.marginX);
+  }
+  if (isNumber(o2.marginY)) {
+    o2.marginY = Number(o2.marginY);
+  }
   if (o.imgData) {
     o2.imgData = {
       src: o.imgData.src,
@@ -112,7 +124,7 @@ function deepCopyOptions(o: CueOptions): CueOptions {
  * @see <a href="http://stackoverflow.com/a/31254199/253468">source</a>
  * @see <a href="http://stackoverflow.com/a/18292964/253468">based on</a>
  */
-function pointOnRect(x, y, minX, minY, maxX, maxY) {
+function pointOnRect(x, y, minX, minY, maxX, maxY): Point {
   let midX = (minX + maxX) / 2;
   let midY = (minY + maxY) / 2;
   // if (midX - x == 0) -> m == ±Inf -> minYx/maxYx == x (because value / ±Inf = ±0)
@@ -157,6 +169,91 @@ function pointOnRect(x, y, minX, minY, maxX, maxY) {
   );
 }
 
+function getCuePositionOnEdge(cueData: CueData, isSrc: boolean): Point {
+  const b = cueData.graphElem.source().renderedBoundingBox({
+    includeLabels: false,
+    includeOverlays: false,
+  });
+  let otherEnd = { x: 0, y: 0 };
+  if (isSrc) {
+    otherEnd = cueData.graphElem.renderedTargetEndpoint();
+  } else {
+    otherEnd = cueData.graphElem.renderedSourceEndpoint();
+  }
+  const l = Math.min(b.x1, b.x2);
+  const t = Math.min(b.y1, b.y2);
+  const r = Math.max(b.x1, b.x2);
+  const bo = Math.max(b.y1, b.y2);
+  return pointOnRect(otherEnd.x, otherEnd.y, l, t, r, bo);
+}
+
+function isNumber(value: string | number): boolean {
+  return value != null && !isNaN(Number(value.toString()));
+}
+
+function getMargins(c: CueOptions, graphElem): Point {
+  const r = { x: 0, y: 0 };
+  if (graphElem.isNode()) {
+    const bb = graphElem.renderedBoundingBox({
+      includeLabels: false,
+      includeOverlays: false,
+    });
+    if (typeof c.marginX == "number") {
+      r.x = c.marginX;
+    } else if (typeof c.marginX == "string") {
+      const marginX = (Number(c.marginX.substr(1)) / 100) * bb.w;
+      r.x = marginX;
+    }
+    if (typeof c.marginY == "number") {
+      r.y = c.marginY;
+    } else if (typeof c.marginY == "string") {
+      const marginY = (Number(c.marginY.substr(1)) / 100) * bb.h;
+      r.y = marginY;
+    }
+  } else {
+    const tgt = graphElem.renderedTargetEndpoint();
+    const src = graphElem.renderedSourceEndpoint();
+    const deltaY = tgt.y - src.y;
+    const deltaX = tgt.x - src.x;
+    const angle = Math.atan(deltaY / deltaX);
+    const edgeLength = Math.sqrt(deltaY * deltaY + deltaX * deltaX);
+    let sin = Math.sin(angle);
+    let cos = Math.cos(angle);
+    let direction = deltaX > 0 ? 1 : -1;
+    if (typeof c.marginX == "number") {
+      r.y += c.marginX * sin;
+      r.x += c.marginX * cos;
+    } else if (typeof c.marginX == "string") {
+      const delta = edgeLength * (Number(c.marginX.substr(1)) / 100);
+      r.y += delta * sin;
+      r.x += delta * cos;
+    }
+    const wid = graphElem.renderedWidth();
+    if (typeof c.marginY == "number") {
+      r.x += c.marginY * sin;
+      r.y += c.marginY * cos;
+    } else if (typeof c.marginY == "string") {
+      const delta = wid * (Number(c.marginY.substr(1)) / 100);
+      r.x += delta * sin;
+      r.y += delta * cos;
+    }
+    r.x *= direction;
+    r.y *= direction;
+  }
+  return r;
+}
+
+function checkCuePosition(graphElem, pos: NodeCuePosition | EdgeCuePosition) {
+  const isNode = graphElem.isNode();
+
+  if (isNode && (pos == "target" || pos == "source")) {
+    throw `'${pos}' is invalid cue position for a node`;
+  }
+  if (!isNode && pos != "target" && pos != "source" && pos != "center") {
+    throw `'${pos}' is invalid cue position for an edge`;
+  }
+}
+
 function setCueCoords(cueData: CueData, cyZoom: number) {
   // let the nodes resize first
   let ratio = 1;
@@ -165,7 +262,6 @@ function setCueCoords(cueData: CueData, cyZoom: number) {
     includeLabels: false,
     includeOverlays: false,
   });
-  const isNode = cueData.graphElem.isNode();
 
   for (let id in cueData.cues) {
     const cue = cueData.cues[id];
@@ -174,14 +270,6 @@ function setCueCoords(cueData: CueData, cyZoom: number) {
     const pos = cue.position;
     let y = (bb.y1 + bb.y2) / 2 - h / 2;
     let x = (bb.x2 + bb.x1) / 2 - w / 2;
-    if (isNode && (pos == "target" || pos == "source")) {
-      console.error(`'${pos}' is invalid cue position for a node`);
-      return;
-    }
-    if (!isNode && pos != "target" && pos != "source" && pos != "center") {
-      console.error(`'${pos}' is invalid cue position for an edge`);
-      return;
-    }
     if (pos == "bottom" || pos == "bottom-left" || pos == "bottom-right") {
       y = bb.y2 - h / 2;
     } else if (pos == "top" || pos == "top-left" || pos == "top-right") {
@@ -192,37 +280,19 @@ function setCueCoords(cueData: CueData, cyZoom: number) {
     } else if (pos == "left" || pos == "top-left" || pos == "bottom-left") {
       x = bb.x1 - w / 2;
     }
-
     if (pos == "source") {
-      const b = cueData.graphElem.source().renderedBoundingBox({
-        includeLabels: false,
-        includeOverlays: false,
-      });
-      const tgtEnd = cueData.graphElem.renderedTargetEndpoint();
-      const l = Math.min(b.x1, b.x2);
-      const t = Math.min(b.y1, b.y2);
-      const r = Math.max(b.x1, b.x2);
-      const bo = Math.max(b.y1, b.y2);
-      const p = pointOnRect(tgtEnd.x, tgtEnd.y, l, t, r, bo);
+      const p = getCuePositionOnEdge(cueData, true);
       x = p.x - w / 2;
       y = p.y - h / 2;
     }
     if (pos == "target") {
-      const b = cueData.graphElem.target().renderedBoundingBox({
-        includeLabels: false,
-        includeOverlays: false,
-      });
-      const srcEnd = cueData.graphElem.renderedSourceEndpoint();
-      const l = Math.min(b.x1, b.x2);
-      const t = Math.min(b.y1, b.y2);
-      const r = Math.max(b.x1, b.x2);
-      const bo = Math.max(b.y1, b.y2);
-      const p = pointOnRect(srcEnd.x, srcEnd.y, l, t, r, bo);
+      const p = getCuePositionOnEdge(cueData, false);
       x = p.x - w / 2;
       y = p.y - h / 2;
-      // x = tgtEnd.x - w / 2;
-      // y = tgtEnd.y - h / 2;
     }
+    const margins = getMargins(cue, cueData.graphElem);
+    x += margins.x;
+    y += margins.y;
     cue.htmlElem.style.transform = `translate(${x}px, ${y}px) scale(${z1})`;
   }
 }
@@ -318,7 +388,7 @@ function destroyCuesOfGraphElem(e: { target: any }) {
     } else {
       allCues[id].graphElem.off("position", allCues[id].positionFn);
     }
-    allCues[id].graphElem.off("style", allCues[id].styleFn);
+    allCues[id].graphElem.off(STYLE_EVENTS, allCues[id].styleFn);
     e.target.cy().off("pan zoom resize", allCues[id].positionFn);
   }
   delete allCues[id];
@@ -341,7 +411,7 @@ function addEventListeners4Elem(e, cy, positionHandlerFn, styleHandlerFn) {
   } else {
     e.on("position", positionHandlerFn);
   }
-  e.on("style mouseover mouseout select unselect", styleHandlerFn);
+  e.on(STYLE_EVENTS, styleHandlerFn);
   e.on("remove", destroyCuesOfGraphElem);
   cy.on("pan zoom resize", positionHandlerFn);
 }
@@ -354,6 +424,7 @@ export function addCue(cueOptions: CueOptions) {
   for (let i = 0; i < eles.length; i++) {
     const opts = deepCopyOptions(cueOptions);
     const e = eles[i];
+    checkCuePosition(e, opts.position);
     let htmlElem;
     if (typeof opts.htmlElem == "string") {
       htmlElem = document.createElement("img");
@@ -448,13 +519,16 @@ export function removeCue(cueId: string | number) {
 export function updateCue(cueOptions: CueOptions) {
   const eles = this;
   const cueId = cueOptions.id;
-  if (cueId !== undefined && cueId != null) {
+  fillEmptyOptions(cueOptions);
+  if (cueId == undefined || cueId == null) {
     console.error("Id is undefined. To update a 'cueId' must be provided!");
     return;
   }
   for (let i = 0; i < eles.length; i++) {
+    const opts = cueOptions;
     const e = eles[i];
     const cue = allCues[e.id()].cues[cueId];
+    checkCuePosition(e, opts.position);
     if (cue) {
       allCues[e.id()].cues[cueId] = cueOptions;
     } else {

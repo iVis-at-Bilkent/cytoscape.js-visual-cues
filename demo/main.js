@@ -84,10 +84,45 @@ function onLoaded() {
       options.imgData = { width: 16, height: 16, src: "assets/add.svg" };
     }
 
-    const elems = cy.$(":selected");
-    for (let i = 0; i < elems.length; i++) {
-      const e = elems[i];
-      e.addCue(options);
+    cy.$(":selected").addCue(options);
+  });
+
+  document.getElementById("updateCue").addEventListener("click", () => {
+    let options = {
+      id: document.getElementById("cueId").value,
+      show: document.getElementById("showOpt").value,
+      position: document.getElementById("posOpt").value,
+      marginX: document.getElementById("marginX").value,
+      marginY: document.getElementById("marginY").value,
+      zoom2hide: document.getElementById("zoom2hide").value,
+      isFixedSize: document.getElementById("isFixedSize").checked,
+      zIndex: document.getElementById("zIndex").checked,
+    };
+    const htmlElem = document.getElementById("htmlElem").value;
+    if (htmlElem && htmlElem.length > 0) {
+      const div = document.createElement("div");
+      div.innerHTML = `<span class="badge rounded-pill bg-primary">${htmlElem}</span>`;
+      options.htmlElem = div;
+    }
+
+    const imgElemOpt = document.getElementById("imgElem").value;
+    if (imgElemOpt == "1") {
+      options.imgData = { width: 16, height: 16, src: "assets/edit.svg" };
+    } else if (imgElemOpt == "2") {
+      options.imgData = { width: 16, height: 16, src: "assets/close.svg" };
+    } else if (imgElemOpt == "3") {
+      options.imgData = { width: 16, height: 16, src: "assets/add.svg" };
+    }
+
+    cy.$(":selected").updateCue(options);
+  });
+
+  document.getElementById("removeCue").addEventListener("click", () => {
+    const id = document.getElementById("cueId").value;
+    if (id) {
+      cy.$(":selected").removeCue(id);
+    } else {
+      cy.$(":selected").removeCue();
     }
   });
 
@@ -98,6 +133,10 @@ function onLoaded() {
   }
 
   document.addEventListener("keydown", function (e) {
+    const activeElement = document.activeElement;
+    if (activeElement.value && activeElement.value.length > 0) {
+      return;
+    }
     if (e.key == "Delete") {
       cy.$(":selected").remove();
     }
@@ -116,14 +155,14 @@ function onLoaded() {
     position: "target",
     onCueClicked: fn,
     zIndex: 100,
-    show: "select"
+    show: "select",
   });
   e.addCue({
     htmlElem: div,
     position: "source",
     onCueClicked: fn,
     zIndex: 100,
-    show: "hover"
+    show: "hover",
   });
   e.addCue({
     htmlElem: div,
