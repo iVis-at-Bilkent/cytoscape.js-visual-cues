@@ -40,6 +40,16 @@
   <input id="sif-file-inp" type="file" onchange="sifFileSelected()" accept="text/*, .json, .sif"
     style="display: none;" />
   <div class="root">
+    <div class="z10 toast-container position-absolute top-0 end-0 p-3 top-0 end-0" id="toastPlacement">
+      <div class="toast">
+        <div class="toast-header">
+          <strong class="me-auto">Warning!</strong>
+        </div>
+        <div class="toast-body">
+          There is no any selected graph element!
+        </div>
+      </div>
+    </div>
     <div class="ext-header text-center">
       <h2>cytoscape-visual-cues demo</h2>
     </div>
@@ -217,19 +227,12 @@
                 </div>
               </div>
               <div class="break"></div>
-              <div class="dropdown m-1">
-                <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                  aria-expanded="false">
-                  Selected elements
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                  <li><a id="addCue" class="dropdown-item" href="#">Add cue(s)</a></li>
-                  <li><a id="removeCue" class="dropdown-item" href="#">Remove cue(s)</a></li>
-                  <li><a id="updateCue" class="dropdown-item" href="#">Update cue(s)</a></li>
-                  <li><a id="showCue" class="dropdown-item" href="#">Show cue(s)</a></li>
-                  <li><a id="hideCue" class="dropdown-item" href="#">Hide cue(s)</a></li>
-                </ul>
-              </div>
+
+              <button id="addCue" type="button" class="btn btn-secondary m-1">Add cue(s)</button>
+              <button id="removeCue" type="button" class="btn btn-secondary m-1">Remove cue(s)</button>
+              <button id="updateCue" type="button" class="btn btn-secondary m-1">Update cue(s)</button>
+              <button id="showCue" type="button" class="btn btn-secondary m-1">Show cue(s)</button>
+              <button id="hideCue" type="button" class="btn btn-secondary m-1">Hide cue(s)</button>
             </div>
           </div>
         </div>

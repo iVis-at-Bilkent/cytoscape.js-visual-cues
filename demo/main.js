@@ -58,6 +58,10 @@ function onLoaded() {
   });
 
   document.getElementById("addCue").addEventListener("click", () => {
+    if (!haveAnySelected()) {
+      toastList[0].show();
+      return;
+    }
     let options = {
       id: document.getElementById("cueId").value,
       show: document.getElementById("showOpt").value,
@@ -88,6 +92,10 @@ function onLoaded() {
   });
 
   document.getElementById("updateCue").addEventListener("click", () => {
+    if (!haveAnySelected()) {
+      toastList[0].show();
+      return;
+    }
     let options = {
       id: document.getElementById("cueId").value,
       show: document.getElementById("showOpt").value,
@@ -118,6 +126,10 @@ function onLoaded() {
   });
 
   document.getElementById("removeCue").addEventListener("click", () => {
+    if (!haveAnySelected()) {
+      toastList[0].show();
+      return;
+    }
     const id = document.getElementById("cueId").value;
     if (id) {
       cy.$(":selected").removeCue(id);
@@ -130,6 +142,17 @@ function onLoaded() {
     const div = document.createElement("div");
     div.innerHTML = `<span class="badge rounded-pill bg-primary">${badge}</span>`;
     e.addCue({ show: "always", position: "bottom", htmlElem: div });
+  }
+
+  function haveAnySelected() {
+    return cy.$(":selected").length > 0;
+  }
+  let toastList = [];
+  function initToasts() {
+    let toastElList = [].slice.call(document.querySelectorAll(".toast"));
+    toastList = toastElList.map(function (toastEl) {
+      return new bootstrap.Toast(toastEl);
+    });
   }
 
   document.addEventListener("keydown", function (e) {
@@ -214,4 +237,6 @@ function onLoaded() {
     zIndex: 100,
     zoom2hide: 1,
   });
+
+  initToasts();
 }
