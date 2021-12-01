@@ -106,22 +106,6 @@ function onLoaded() {
       isFixedSize: document.getElementById("isFixedSize").checked,
       zIndex: document.getElementById("zIndex").checked,
     };
-    const htmlElem = document.getElementById("htmlElem").value;
-    if (htmlElem && htmlElem.length > 0) {
-      const div = document.createElement("div");
-      div.innerHTML = `<span class="badge rounded-pill bg-primary">${htmlElem}</span>`;
-      options.htmlElem = div;
-    }
-
-    const imgElemOpt = document.getElementById("imgElem").value;
-    if (imgElemOpt == "1") {
-      options.imgData = { width: 16, height: 16, src: "assets/edit.svg" };
-    } else if (imgElemOpt == "2") {
-      options.imgData = { width: 16, height: 16, src: "assets/close.svg" };
-    } else if (imgElemOpt == "3") {
-      options.imgData = { width: 16, height: 16, src: "assets/add.svg" };
-    }
-
     cy.$(":selected").updateCue(options);
   });
 

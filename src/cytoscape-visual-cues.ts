@@ -439,6 +439,33 @@ function addEventListeners4Elem(e, cy, positionHandlerFn, styleHandlerFn) {
   cy.on("pan zoom resize", positionHandlerFn);
 }
 
+function prepareHTMLElement(container, htmlElem, opts: CueOptions, e) {
+  container.appendChild(htmlElem);
+  htmlElem.style.position = "absolute";
+  htmlElem.style.top = "0px";
+  htmlElem.style.left = "0px";
+  htmlElem.style.zIndex = opts.zIndex;
+  if (opts.show != "always") {
+    htmlElem.style.opacity = "0";
+  }
+  htmlElem.addEventListener("click", () => {
+    if (opts.onCueClicked) {
+      opts.onCueClicked(e);
+    }
+  });
+}
+
+function updateCueOptions(opts: CueOptions, o2) {
+  for (let k in o2) {
+    if (k == "htmlElem" || k == "imgData") {
+      throw `'htmlElem' and 'imgData' cannot be updated! Please try removing whole cue and then adding it again`;
+    }
+    if (k in o2) {
+      opts[k] = o2[k];
+    }
+  }
+}
+
 export function addCue(cueOptions: CueOptions) {
   const eles = this;
   const cy = this.cy();
@@ -458,20 +485,7 @@ export function addCue(cueOptions: CueOptions) {
     } else {
       htmlElem = opts.htmlElem;
     }
-    container.appendChild(htmlElem);
-    htmlElem.style.position = "absolute";
-    htmlElem.style.top = "0px";
-    htmlElem.style.left = "0px";
-    htmlElem.style.zIndex = cueOptions.zIndex;
-    if (opts.show != "always") {
-      htmlElem.style.opacity = "0";
-    }
-
-    htmlElem.addEventListener("click", () => {
-      if (cueOptions.onCueClicked) {
-        cueOptions.onCueClicked(e);
-      }
-    });
+    prepareHTMLElement(container, htmlElem, opts, e);
 
     const id = e.id() + "";
     let cueOpacities = {};
@@ -544,21 +558,23 @@ export function removeCue(cueId: string | number) {
 export function updateCue(cueOptions: CueOptions) {
   const eles = this;
   const cueId = cueOptions.id;
-  fillEmptyOptions(cueOptions);
-  if (cueId == undefined || cueId == null) {
-    console.error("Id is undefined. To update a 'cueId' must be provided!");
-    return;
-  }
   for (let i = 0; i < eles.length; i++) {
     const opts = cueOptions;
     const e = eles[i];
-    const cue = allCues[e.id()].cues[cueId];
+    const id = e.id();
+    const cue = allCues[id].cues[cueId];
     checkCuePosition(e, opts.position);
+
     if (cue) {
-      allCues[e.id()].cues[cueId] = cueOptions;
+      updateCueOptions(allCues[id].cues[cueId], cueOptions);
     } else {
-      console.error("Can not found a cue with id: ", cueId);
+      const cues = allCues[id].cues;
+      for (let k in cues) {
+        updateCueOptions(allCues[id].cues[k], cueOptions);
+      }
     }
+    allCues[id].positionFn();
+    allCues[id].styleFn({ type: "position" });
   }
 }
 
