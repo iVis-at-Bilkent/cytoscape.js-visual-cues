@@ -177,6 +177,7 @@ function onLoaded() {
     position: "bottom",
     onCueClicked: fn,
     zIndex: 100,
+    isFixedSize: true,
   });
   n.addCue({ htmlElem: div, position: "right", onCueClicked: fn, zIndex: 100 });
   n.addCue({ htmlElem: div, position: "left", onCueClicked: fn, zIndex: 100 });
@@ -197,17 +198,20 @@ function onLoaded() {
     position: "top-right",
     onCueClicked: fn,
     zIndex: 100,
+    zoom2hide: 3,
   });
   n.addCue({
     htmlElem: div,
     position: "bottom-right",
     onCueClicked: fn,
     zIndex: 100,
+    zoom2hide: 2,
   });
   n.addCue({
     htmlElem: div,
     position: "bottom-left",
     onCueClicked: fn,
     zIndex: 100,
+    zoom2hide: 1,
   });
 }

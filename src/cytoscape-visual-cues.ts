@@ -13,7 +13,13 @@ type NodeCuePosition =
 
 type EdgeCuePosition = "target" | "source" | "center";
 
-type Events2show = "mouseover" | "mouseout" | "style" | "select" | "unselect";
+type Events2show =
+  | "mouseover"
+  | "mouseout"
+  | "style"
+  | "select"
+  | "unselect"
+  | "position";
 
 type StrNum = string | number | undefined;
 
@@ -76,7 +82,9 @@ function deepCopyOptions(o: CueOptions): CueOptions {
     marginX: o.marginX,
     marginY: o.marginY,
     onCueClicked: o.onCueClicked,
-    htmlElem: o.htmlElem.cloneNode(true) as HTMLElement,
+    htmlElem: o.htmlElem
+      ? (o.htmlElem.cloneNode(true) as HTMLElement)
+      : o.htmlElem,
     imgData: null,
     zoom2hide: o.zoom2hide,
     isFixedSize: o.isFixedSize,
@@ -293,7 +301,11 @@ function setCueCoords(cueData: CueData, cyZoom: number) {
     const margins = getMargins(cue, cueData.graphElem);
     x += margins.x;
     y += margins.y;
-    cue.htmlElem.style.transform = `translate(${x}px, ${y}px) scale(${z1})`;
+    let scale = `scale(${z1})`;
+    if (cue.isFixedSize) {
+      scale = "";
+    }
+    cue.htmlElem.style.transform = `translate(${x}px, ${y}px) ${scale}`;
   }
 }
 
@@ -308,12 +320,12 @@ function switchCueOpacities(cues: Cues, prevOpacities: any, isHide: boolean) {
   }
 }
 
-function setCueCoordsOfChildren(e, zoom: number, zoom2hide: number) {
+function setCueCoordsOfChildren(e, zoom: number) {
   const elems = e.children();
   for (let i = 0; i < elems.length; i++) {
     const child = elems[i];
     if (child.isParent()) {
-      setCueCoordsOfChildren(child, zoom, zoom2hide);
+      setCueCoordsOfChildren(child, zoom);
     } else {
       const d = allCues[child.id()];
       if (d) {
@@ -329,9 +341,12 @@ function setCueVisibility(e, cues: Cues, eventType: Events2show) {
       cues[id].htmlElem.style.opacity = "0";
     }
   } else {
+    const zoom = e.cy().zoom();
     for (let id in cues) {
       const showType = cues[id].show;
-      if (showType == "always") {
+      if (zoom <= cues[id].zoom2hide) {
+        cues[id].htmlElem.style.opacity = "0";
+      } else if (showType == "always") {
         cues[id].htmlElem.style.opacity = "1";
       } else if (showType == "hover") {
         if (eventType == "mouseout") {
@@ -394,11 +409,11 @@ function destroyCuesOfGraphElem(e: { target: any }) {
   delete allCues[id];
 }
 
-function onElemMove(e, cueOpacities, zoom2hide, isSwapOpacity: boolean) {
+function onElemMove(e, cueOpacities, isSwapOpacity: boolean) {
   const zoom = e.cy().zoom();
   const id = e.id();
   setCueCoords(allCues[id], zoom);
-  setCueCoordsOfChildren(e, zoom, zoom2hide);
+  setCueCoordsOfChildren(e, zoom);
   if (isSwapOpacity) {
     switchCueOpacities(allCues[id].cues, cueOpacities, false);
   }
@@ -426,15 +441,16 @@ export function addCue(cueOptions: CueOptions) {
     const e = eles[i];
     checkCuePosition(e, opts.position);
     let htmlElem;
-    if (typeof opts.htmlElem == "string") {
+    if (opts.imgData) {
       htmlElem = document.createElement("img");
       htmlElem.width = opts.imgData?.width;
       htmlElem.height = opts.imgData?.height;
+      htmlElem.src = opts.imgData?.src;
       opts.htmlElem = htmlElem;
     } else {
       htmlElem = opts.htmlElem;
-      container.appendChild(htmlElem);
     }
+    container.appendChild(htmlElem);
     htmlElem.style.position = "absolute";
     htmlElem.style.top = "0px";
     htmlElem.style.left = "0px";
@@ -453,7 +469,8 @@ export function addCue(cueOptions: CueOptions) {
     let cueOpacities = {};
     const positionHandlerFn = debounce2(
       () => {
-        onElemMove(e, cueOpacities, opts.zoom2hide, true);
+        onElemMove(e, cueOpacities, true);
+        setCueVisibility(e, allCues[id].cues, "position");
       },
       UPDATE_POPPER_WAIT,
       () => {
@@ -494,7 +511,7 @@ export function addCue(cueOptions: CueOptions) {
         styleFn: styleHandlerFn,
       };
     }
-    onElemMove(e, cueOpacities, opts.zoom2hide, false);
+    onElemMove(e, cueOpacities, false);
   }
 }
 
