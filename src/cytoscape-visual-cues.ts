@@ -178,10 +178,18 @@ function pointOnRect(x, y, minX, minY, maxX, maxY): Point {
 }
 
 function getCuePositionOnEdge(cueData: CueData, isSrc: boolean): Point {
-  const b = cueData.graphElem.source().renderedBoundingBox({
-    includeLabels: false,
-    includeOverlays: false,
-  });
+  let b: any = {};
+  if (isSrc) {
+    b = cueData.graphElem.source().renderedBoundingBox({
+      includeLabels: false,
+      includeOverlays: false,
+    });
+  } else {
+    b = cueData.graphElem.target().renderedBoundingBox({
+      includeLabels: false,
+      includeOverlays: false,
+    });
+  }
   let otherEnd = { x: 0, y: 0 };
   if (isSrc) {
     otherEnd = cueData.graphElem.renderedTargetEndpoint();
