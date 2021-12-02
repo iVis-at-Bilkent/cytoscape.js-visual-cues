@@ -1,5 +1,10 @@
 // update the below line according to your own names
-import { addCue, removeCue, updateCue, showCue, hideCue } from "./cytoscape-visual-cues";
+import {
+  addCue,
+  removeCue,
+  updateCue,
+  getCueData,
+} from "./cytoscape-visual-cues";
 
 export default function register(cytoscape) {
   if (!cytoscape) {
@@ -10,8 +15,7 @@ export default function register(cytoscape) {
   cytoscape("collection", "addCue", addCue);
   cytoscape("collection", "removeCue", removeCue);
   cytoscape("collection", "updateCue", updateCue);
-  cytoscape("collection", "showCue", showCue);
-  cytoscape("collection", "hideCue", hideCue);
+  cytoscape("collection", "getCueData", getCueData);
 }
 
 if (typeof window["cytoscape"] !== "undefined") {

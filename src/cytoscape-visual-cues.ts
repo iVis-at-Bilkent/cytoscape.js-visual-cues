@@ -25,7 +25,7 @@ type StrNum = string | number | undefined;
 
 interface CueOptions {
   id: number | string;
-  show: "select" | "hover" | "always";
+  show: "select" | "hover" | "always" | "never";
   position: NodeCuePosition | EdgeCuePosition;
   marginX: string | number;
   marginY: string | number;
@@ -354,6 +354,8 @@ function setCueVisibility(e, cues: Cues, eventType: Events2show) {
       const showType = cues[id].show;
       if (zoom <= cues[id].zoom2hide) {
         cues[id].htmlElem.style.opacity = "0";
+      } else if (showType == "never") {
+        cues[id].htmlElem.style.opacity = "0";
       } else if (showType == "always") {
         cues[id].htmlElem.style.opacity = "1";
       } else if (showType == "hover") {
@@ -368,29 +370,6 @@ function setCueVisibility(e, cues: Cues, eventType: Events2show) {
         } else if (eventType == "unselect") {
           cues[id].htmlElem.style.opacity = "0";
         }
-      }
-    }
-  }
-}
-
-function showHideCues(eles, cueId: StrNum, isShow: boolean) {
-  let opacity = "0";
-  if (isShow) {
-    opacity = "1";
-  }
-  for (let i = 0; i < eles.length; i++) {
-    const e = eles[i];
-    if (cueId !== undefined && cueId != null) {
-      const cue = allCues[e.id()].cues[cueId];
-      if (cue) {
-        cue.htmlElem.style.opacity = opacity;
-      } else {
-        console.error("Can not found a cue with id: ", cueId);
-      }
-    } else {
-      const cues = allCues[e.id()].cues;
-      for (let id in cues) {
-        cues[id].htmlElem.style.opacity = opacity;
       }
     }
   }
@@ -549,8 +528,11 @@ export function removeCue(cueId: string | number) {
       if (cue) {
         cue.htmlElem.remove();
         delete allCues[e.id()].cues[cueId];
+        if (Object.keys(allCues[e.id()].cues).length < 1) {
+          destroyCuesOfGraphElem({ target: e });
+        }
       } else {
-        console.error("Can not found a cue with id: ", cueId);
+        console.warn("Can not found a cue with id: ", cueId);
       }
     } else {
       destroyCuesOfGraphElem({ target: e });
@@ -581,12 +563,15 @@ export function updateCue(cueOptions: CueOptions) {
   }
 }
 
-export function showCue(cueId: StrNum) {
+export function getCueData() {
   const eles = this;
-  showHideCues(eles, cueId, true);
-}
+  let r = {};
+  for (let i = 0; i < eles.length; i++) {
+    const id = eles[i].id();
+    if (allCues[id]) {
+      r[id] = allCues[id].cues;
+    }
+  }
 
-export function hideCue(cueId: StrNum) {
-  const eles = this;
-  showHideCues(eles, cueId, false);
+  return r;
 }
