@@ -9,29 +9,12 @@
    viewBox="0 0 512 512"
    style="enable-background:new 0 0 512 512;"
    xml:space="preserve"
-   sodipodi:docname="expand-rectangle.svg"
+   sodipodi:docname="collapse-ellipse.svg"
    inkscape:version="1.1 (c68e22c387, 2021-05-23)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg"><rect
-   style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:69.0337;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-   id="rect999"
-   width="442.96628"
-   height="442.96628"
-   x="34.516853"
-   y="34.516853"
-   ry="11.380898" /><text
-   xml:space="preserve"
-   style="font-size:587.006px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:3.05732"
-   x="15.809076"
-   y="442.87885"
-   id="text2025"><tspan
-     sodipodi:role="line"
-     id="tspan2023"
-     x="15.809076"
-     y="442.87885"
-     style="font-size:587.006px;stroke-width:3.05732">+</tspan></text><defs
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
    id="defs41"><marker
    style="overflow:visible;"
    id="Arrow1Send"
@@ -78,9 +61,9 @@
    inkscape:pageopacity="0.0"
    inkscape:pagecheckerboard="0"
    showgrid="false"
-   inkscape:zoom="1.2056723"
-   inkscape:cx="267.07091"
-   inkscape:cy="261.67973"
+   inkscape:zoom="0.30141807"
+   inkscape:cx="882.49519"
+   inkscape:cy="811.1657"
    inkscape:window-width="1616"
    inkscape:window-height="1361"
    inkscape:window-x="263"
@@ -133,4 +116,20 @@
 <g
    id="g36">
 </g>
-</svg>
+<text
+   xml:space="preserve"
+   style="font-size:844.402px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:4.39791"
+   x="14.100762"
+   y="587.02679"
+   id="text7312"
+   transform="scale(1.2437878,0.80399567)"><tspan
+     sodipodi:role="line"
+     id="tspan7310"
+     x="14.100762"
+     y="587.02679"
+     style="font-size:844.402px;stroke-width:4.39791">-</tspan></text><circle
+   style="fill:none;stroke:#000000;stroke-width:63.7423;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+   id="path10908"
+   cx="256"
+   cy="256"
+   r="224.12886" /></svg>

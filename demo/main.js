@@ -138,7 +138,7 @@ function onLoaded() {
   initToasts();
   hideSomeNodes();
   addSampleCues();
-  addSpecialCues();
+  updateCues();
 
   document.getElementById("degreeCentrality").addEventListener("click", () => {
     const elems = cy.nodes();
@@ -155,6 +155,7 @@ function onLoaded() {
       return;
     }
     cy.$(":selected").remove();
+    updateCues();
   });
 
   document.getElementById("hideSelected").addEventListener("click", () => {
@@ -167,15 +168,15 @@ function onLoaded() {
     for (let i = 0; i < hiddenNodes.length; i++) {
       hiddenNodes[i].connectedEdges().css("visibility", "hidden");
     }
-    showOrAddDashedCues();
     if (hiddenNodes.length > 0) {
+      updateCues();
       cy.layout({ name: "fcose", animate: true, randomize: false }).run();
     }
   });
 
   document.getElementById("showAllHidden").addEventListener("click", () => {
     cy.$(":hidden").css("visibility", "visible");
-    hideDashedCues();
+    updateCues();
   });
 
   document.getElementById("addCue").addEventListener("click", () => {
@@ -372,113 +373,158 @@ function onLoaded() {
     // layoutUtils.placeNewNodes(edges.connectedNodes(":hidden"));
     edges.css("visibility", "visible");
     edges.connectedNodes().css("visibility", "visible");
-    hideDashedCues();
+    updateCues();
     cy.layout({ name: "fcose", animate: true, randomize: false }).run();
   }
 
-  function addSpecialCues() {
-    const showNei = (e) => {
-      if (e.neighborhood(":hidden").length < 1) {
-        return;
-      }
-      // layoutUtils.placeNewNodes(e.neighborhood(":hidden"));
-      e.neighborhood().css("visibility", "visible");
-      hideDashedCues();
-      cy.layout({ name: "fcose", animate: true, randomize: false }).run();
-    };
-
-    let options4Rect = {
-      id: "expand-rect",
-      show: "always",
-      position: "top-right",
-      zIndex: 10,
-      onCueClicked: showNei,
-      imgData: {
-        width: IMG_SIZE,
-        height: IMG_SIZE,
-        src: "assets/expand-rectangle.svg",
-      },
-    };
-    cy.nodes(".rect").addCue(options4Rect);
-
-    let options4Circle = {
-      id: "expand-circle",
-      show: "always",
-      position: "top-left",
-      zIndex: 10,
-      onCueClicked: showNei,
-      imgData: {
-        width: IMG_SIZE,
-        height: IMG_SIZE,
-        src: "assets/expand-ellipse.svg",
-      },
-    };
-    cy.nodes(".circle").addCue(options4Circle);
-
-    const rectNodes = cy.nodes(".rect");
-    for (let i = 0; i < rectNodes.length; i++) {
-      const hasHidden =
-        rectNodes[i]
-          .neighborhood("edge.dashed")
-          .filter((x) => x.css("visibility") == "hidden").length > 0;
-      if (hasHidden) {
-        rectNodes[i].addCue(options4RectDashed);
-      }
+  function hideDashedNei(e) {
+    const edges = e.neighborhood("edge.dashed:visible");
+    if (edges.length < 1) {
+      return;
     }
+    // layoutUtils.placeNewNodes(edges.connectedNodes(":hidden"));
+    edges.css("visibility", "hidden");
+    const nodes2hide = edges.connectedNodes().not(e);
+    nodes2hide.css("visibility", "hidden");
+    nodes2hide.connectedEdges().css("visibility", "hidden");
+    updateCues();
+    cy.layout({ name: "fcose", animate: true, randomize: false }).run();
+  }
 
-    const circleNodes = cy.nodes(".circle");
-    for (let i = 0; i < circleNodes.length; i++) {
-      const hasHidden =
-        circleNodes[i]
-          .neighborhood("edge.dashed")
-          .filter((x) => x.css("visibility") == "hidden").length > 0;
-      if (hasHidden) {
-        circleNodes[i].addCue(options4CircleDashed);
-      }
+  function showNei(e) {
+    if (e.neighborhood(":hidden").length < 1) {
+      return;
+    }
+    // layoutUtils.placeNewNodes(e.neighborhood(":hidden"));
+    e.neighborhood().css("visibility", "visible");
+    updateCues();
+    cy.layout({ name: "fcose", animate: true, randomize: false }).run();
+  }
+
+  function hideNei(e) {
+    const edges = e.neighborhood("edge:visible");
+    if (edges.length < 1) {
+      return;
+    }
+    edges.css("visibility", "hidden");
+    const nodes2hide = edges.connectedNodes().not(e);
+    nodes2hide.css("visibility", "hidden");
+    nodes2hide.connectedEdges().css("visibility", "hidden");
+    updateCues();
+    cy.layout({ name: "fcose", animate: true, randomize: false }).run();
+  }
+
+  function showOrAddCue(e, cueName, onClickFn) {
+    const d = e.getCueData();
+    const graphElemId = e.id();
+    let cue2pos = {
+      "collapse-ellipse-dashed": "top",
+      "collapse-ellipse": "bottom",
+      "collapse-rectangle-dashed": "right",
+      "collapse-rectangle": "left",
+      "expand-ellipse-dashed": "top-right",
+      "expand-ellipse": "top-left",
+      "expand-rectangle-dashed": "bottom-right",
+      "expand-rectangle": "bottom-left",
+    };
+    if (d[graphElemId] && d[graphElemId][cueName]) {
+      e.updateCue({ id: cueName, show: "always" });
+    } else {
+      let options4Rect = {
+        id: cueName,
+        show: "always",
+        position: cue2pos[cueName],
+        zIndex: 10,
+        onCueClicked: onClickFn,
+        imgData: {
+          width: IMG_SIZE,
+          height: IMG_SIZE,
+          src: `assets/${cueName}.svg`,
+        },
+      };
+      e.addCue(options4Rect);
     }
   }
 
-  // hide dashed cues if there is nothing to show
-  function hideDashedCues() {
-    const nodes = cy.nodes(".rect, .circle");
-    for (let i = 0; i < nodes.length; i++) {
-      const e = nodes[i];
-      const edges = e.neighborhood("edge.dashed:hidden");
-      if (edges.length < 1 && e.neighborhood("edge.dashed").length > 0) {
-        const cueData = e.getCueData();
-        if (e.hasClass("rect")) {
-          if (cueData[e.id()]["expand-rect-dashed"]) {
-            e.updateCue({ id: "expand-rect-dashed", show: "never" });
-          }
-        } else {
-          if (cueData[e.id()]["expand-circle-dashed"]) {
-            e.updateCue({ id: "expand-circle-dashed", show: "never" });
-          }
-        }
-      }
+  function hideCueIfExists(e, cueName) {
+    const d = e.getCueData();
+    const graphElemId = e.id();
+    if (d[graphElemId] && d[graphElemId][cueName]) {
+      e.updateCue({ id: cueName, show: "never" });
     }
   }
 
-  // show dashed cues if there is something to show
-  function showOrAddDashedCues() {
+  function updateCues() {
     const nodes = cy.nodes(".rect:visible, .circle:visible");
     for (let i = 0; i < nodes.length; i++) {
       const e = nodes[i];
-      const edges = e.neighborhood("edge.dashed:hidden");
-      if (edges.length > 0) {
-        const cueData = e.getCueData();
-        if (e.hasClass("rect")) {
-          if (cueData[e.id()]["expand-rect-dashed"]) {
-            e.updateCue({ id: "expand-rect-dashed", show: "always" });
-          } else {
-            e.addCue(options4RectDashed);
-          }
+      const id = e.id();
+      if (e.hasClass("rect")) {
+        const hiddenDashedEdges = e.neighborhood("edge.dashed:hidden");
+        if (hiddenDashedEdges.length > 0) {
+          // show or add expand-rect-dashed
+          showOrAddCue(e, "expand-rectangle-dashed", showDashedNei);
         } else {
-          if (cueData[e.id()]["expand-circle-dashed"]) {
-            e.updateCue({ id: "expand-circle-dashed", show: "always" });
-          } else {
-            e.addCue(options4CircleDashed);
-          }
+          // hide expand-rect-dashed if exists
+          hideCueIfExists(e, "expand-rectangle-dashed");
+        }
+        const visibleDashedEdges = e.neighborhood("edge.dashed:visible");
+        if (visibleDashedEdges.length > 0) {
+          // show or add collapse-rect-dashed
+          showOrAddCue(e, "collapse-rectangle-dashed", hideDashedNei);
+        } else {
+          // hide collapse-rect-dashed if exists
+          hideCueIfExists(e, "collapse-rectangle-dashed");
+        }
+        const hiddenEdges = e.neighborhood("edge:hidden");
+        if (hiddenEdges.length > 0) {
+          // show or add expand-rect
+          showOrAddCue(e, "expand-rectangle", showNei);
+        } else {
+          // hide expand-rect if exists
+          hideCueIfExists(e, "expand-rectangle");
+        }
+        const visibleEdges = e.neighborhood("edge:visible");
+        if (visibleEdges.length > 0) {
+          // show or add collapse-rect
+          showOrAddCue(e, "collapse-rectangle", hideNei);
+        } else {
+          // hide collapse-rect if exists
+          hideCueIfExists(e, "collapse-rectangle");
+        }
+      } else {
+        const hiddenDashedEdges = e.neighborhood("edge.dashed:hidden");
+        if (hiddenDashedEdges.length > 0) {
+          // show or add expand-circle-dashed
+          showOrAddCue(e, "expand-ellipse-dashed", showDashedNei);
+        } else {
+          // hide expand-circle-dashed if exists
+          hideCueIfExists(e, "expand-ellipse-dashed");
+        }
+        const visibleDashedEdges = e.neighborhood("edge.dashed:visible");
+        if (visibleDashedEdges.length > 0) {
+          // show or add collapse-circle-dashed
+          showOrAddCue(e, "collapse-ellipse-dashed", hideDashedNei);
+        } else {
+          // hide collapse-circle-dashed if exists
+          hideCueIfExists(e, "collapse-ellipse-dashed");
+        }
+
+        const hiddenEdges = e.neighborhood("edge:hidden");
+        if (hiddenEdges.length > 0) {
+          // show or add expand-circle
+          showOrAddCue(e, "expand-ellipse", showNei);
+        } else {
+          // hide expand-circle if exists
+          hideCueIfExists(e, "expand-ellipse");
+        }
+        const visibleEdges = e.neighborhood("edge:visible");
+        if (visibleEdges.length > 0) {
+          // show or add collapse-circle
+          showOrAddCue(e, "collapse-ellipse", hideNei);
+        } else {
+          // hide collapse-circle if exists
+          hideCueIfExists(e, "collapse-ellipse");
         }
       }
     }
