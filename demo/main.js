@@ -9,6 +9,9 @@ function onLoaded() {
         selector: "node",
         style: {
           label: "data(id)",
+          "text-valign": "center",
+          "font-size": "11px",
+          color: "white",
         },
       },
       {
@@ -31,7 +34,7 @@ function onLoaded() {
       {
         selector: "node.barrel",
         style: {
-          shape: "barrel",
+          shape: "round-octagon",
         },
       },
       {
@@ -50,6 +53,12 @@ function onLoaded() {
         selector: "edge.dashed",
         style: {
           "line-style": "dashed",
+        },
+      },
+      {
+        selector: ":selected",
+        style: {
+          "background-color": "#a1887f",
         },
       },
     ],
@@ -108,32 +117,7 @@ function onLoaded() {
       { data: { source: "n15", target: "n17" }, classes: "dashed" },
     ],
   };
-  const IMG_SIZE = 32;
-  let options4RectDashed = {
-    id: "expand-rect-dashed",
-    show: "always",
-    position: "bottom-left",
-    zIndex: 10,
-    onCueClicked: showDashedNei,
-    imgData: {
-      width: IMG_SIZE,
-      height: IMG_SIZE,
-      src: "assets/expand-rectangle-dashed.svg",
-    },
-  };
-
-  let options4CircleDashed = {
-    id: "expand-circle-dashed",
-    show: "always",
-    position: "bottom-right",
-    zIndex: 10,
-    onCueClicked: showDashedNei,
-    imgData: {
-      width: IMG_SIZE,
-      height: IMG_SIZE,
-      src: "assets/expand-ellipse-dashed.svg",
-    },
-  };
+  const IMG_SIZE = 24;
   loadSample("graph4cues");
   initToasts();
   hideSomeNodes();
@@ -428,11 +412,11 @@ function onLoaded() {
       "expand-rectangle": "bottom-left",
     };
     if (d[graphElemId] && d[graphElemId][cueName]) {
-      e.updateCue({ id: cueName, show: "always" });
+      e.updateCue({ id: cueName, show: "select" });
     } else {
       let options4Rect = {
         id: cueName,
-        show: "always",
+        show: "select",
         position: cue2pos[cueName],
         zIndex: 10,
         onCueClicked: onClickFn,

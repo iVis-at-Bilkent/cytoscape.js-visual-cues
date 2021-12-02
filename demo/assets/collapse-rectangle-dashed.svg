@@ -69,12 +69,12 @@
    inkscape:pagecheckerboard="0"
    showgrid="false"
    inkscape:zoom="0.30141807"
-   inkscape:cx="882.49519"
+   inkscape:cx="884.15403"
    inkscape:cy="811.1657"
    inkscape:window-width="1616"
    inkscape:window-height="1361"
-   inkscape:window-x="263"
-   inkscape:window-y="0"
+   inkscape:window-x="550"
+   inkscape:window-y="152"
    inkscape:window-maximized="0"
    inkscape:current-layer="Layer_1" />
 
@@ -123,15 +123,11 @@
 <g
    id="g36">
 </g>
-<text
-   xml:space="preserve"
-   style="font-size:844.402px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:4.39791"
-   x="14.100761"
-   y="587.02679"
-   id="text7312"
-   transform="scale(1.2437878,0.80399567)"><tspan
-     sodipodi:role="line"
-     id="tspan7310"
-     x="14.100761"
-     y="587.02679"
-     style="font-size:844.402px;stroke-width:4.39791">-</tspan></text></svg>
+<rect
+   style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:48.1238;stroke-miterlimit:4;stroke-dasharray:none"
+   id="rect964"
+   width="280"
+   height="80"
+   x="116"
+   y="216"
+   ry="5.0103555" /></svg>
