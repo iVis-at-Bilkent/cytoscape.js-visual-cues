@@ -322,10 +322,10 @@ function setCueCoords(cueData: CueData, cyZoom: number) {
 function switchCueOpacities(cues: Cues, prevOpacities: any, isHide: boolean) {
   for (let id in cues) {
     if (isHide) {
-      prevOpacities[id] = cues[id].htmlElem.style.opacity;
-      cues[id].htmlElem.style.opacity = "0";
+      prevOpacities[id] = cues[id].htmlElem.style.visibility;
+      cues[id].htmlElem.style.visibility = "hidden";
     } else {
-      cues[id].htmlElem.style.opacity = prevOpacities[id];
+      cues[id].htmlElem.style.visibility = prevOpacities[id];
     }
   }
 }
@@ -348,29 +348,29 @@ function setCueCoordsOfChildren(e, zoom: number) {
 function setCueVisibility(e, cues: Cues, eventType: Events2show) {
   if (!e.visible()) {
     for (let id in cues) {
-      cues[id].htmlElem.style.opacity = "0";
+      cues[id].htmlElem.style.visibility = "hidden";
     }
   } else {
     const zoom = e.cy().zoom();
     for (let id in cues) {
       const showType = cues[id].show;
       if (zoom <= cues[id].zoom2hide) {
-        cues[id].htmlElem.style.opacity = "0";
+        cues[id].htmlElem.style.visibility = "hidden";
       } else if (showType == "never") {
-        cues[id].htmlElem.style.opacity = "0";
+        cues[id].htmlElem.style.visibility = "hidden";
       } else if (showType == "always") {
-        cues[id].htmlElem.style.opacity = "1";
+        cues[id].htmlElem.style.visibility = "visible";
       } else if (showType == "hover") {
         if (eventType == "mouseout") {
-          cues[id].htmlElem.style.opacity = "0";
+          cues[id].htmlElem.style.visibility = "hidden";
         } else if (eventType == "mouseover") {
-          cues[id].htmlElem.style.opacity = "1";
+          cues[id].htmlElem.style.visibility = "visible";
         }
       } else if (showType == "select") {
         if (eventType == "select") {
-          cues[id].htmlElem.style.opacity = "1";
+          cues[id].htmlElem.style.visibility = "visible";
         } else if (eventType == "unselect") {
-          cues[id].htmlElem.style.opacity = "0";
+          cues[id].htmlElem.style.visibility = "hidden";
         }
       }
     }
@@ -430,7 +430,7 @@ function prepareHTMLElement(container, htmlElem, opts: CueOptions, e) {
   htmlElem.style.left = "0px";
   htmlElem.style.zIndex = opts.zIndex;
   if (opts.show != "always") {
-    htmlElem.style.opacity = "0";
+    htmlElem.style.visibility = "hidden";
   }
   htmlElem.addEventListener("click", () => {
     if (opts.onCueClicked) {
