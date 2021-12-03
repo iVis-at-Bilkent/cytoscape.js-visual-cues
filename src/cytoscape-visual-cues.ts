@@ -423,6 +423,11 @@ function addEventListeners4Elem(e, cy, positionHandlerFn, styleHandlerFn) {
   cy.on("pan zoom resize", positionHandlerFn);
 }
 
+function stopEvent(event) {
+  event.preventDefault();
+  event.stopPropagation();
+}
+
 function prepareHTMLElement(container, htmlElem, opts: CueOptions, e) {
   container.appendChild(htmlElem);
   htmlElem.style.position = "absolute";
@@ -438,6 +443,11 @@ function prepareHTMLElement(container, htmlElem, opts: CueOptions, e) {
       opts.onCueClicked(e);
     }
   });
+
+  htmlElem.addEventListener("mousedown", stopEvent);
+  htmlElem.addEventListener("mouseup", stopEvent);
+  htmlElem.addEventListener("touchstart", stopEvent);
+  htmlElem.addEventListener("touchend", stopEvent);
 }
 
 function updateCueOptions(opts: CueOptions, o2) {
