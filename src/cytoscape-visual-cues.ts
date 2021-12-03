@@ -429,6 +429,7 @@ function prepareHTMLElement(container, htmlElem, opts: CueOptions, e) {
   htmlElem.style.top = "0px";
   htmlElem.style.left = "0px";
   htmlElem.style.zIndex = opts.zIndex;
+  htmlElem.title = opts.tooltip;
   if (opts.show != "always") {
     htmlElem.style.visibility = "hidden";
   }
@@ -465,7 +466,6 @@ export function addCue(cueOptions: CueOptions) {
       htmlElem.width = opts.imgData?.width;
       htmlElem.height = opts.imgData?.height;
       htmlElem.src = opts.imgData?.src;
-      htmlElem.title = opts.tooltip;
       opts.htmlElem = htmlElem;
     } else {
       htmlElem = opts.htmlElem;

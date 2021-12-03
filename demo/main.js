@@ -183,6 +183,7 @@ function onLoaded() {
       zoom2hide: document.getElementById("zoom2hide").value,
       isFixedSize: document.getElementById("isFixedSize").checked,
       zIndex: document.getElementById("zIndex").checked,
+      tooltip: document.getElementById("tooltip").value,
     };
     const htmlElem = document.getElementById("htmlElem").value;
     if (htmlElem && htmlElem.length > 0) {
@@ -217,6 +218,7 @@ function onLoaded() {
       zoom2hide: document.getElementById("zoom2hide").value,
       isFixedSize: document.getElementById("isFixedSize").checked,
       zIndex: document.getElementById("zIndex").checked,
+      tooltip: document.getElementById("tooltip").value,
     };
     cy.$(":selected").updateCue(options);
   });
