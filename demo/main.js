@@ -228,6 +228,22 @@ function onLoaded() {
     }
   });
 
+  document.getElementById("getCueData").addEventListener("click", () => {
+    if (!haveAnySelected()) {
+      toastList[0].show();
+      return;
+    }
+    document.getElementById("cueDataContainer").style.display = "block";
+    const data = cy.$(":selected").getCueData();
+    const str = JSON.stringify(data, null, 4);
+    document.getElementById("cueData").innerHTML = str;
+  });
+
+  document.getElementById("closeCueData").addEventListener("click", () => {
+    document.getElementById("cueData").innerHTML = "";
+    document.getElementById("cueDataContainer").style.display = "none";
+  });
+
   function buildCue4Elem(e, badge) {
     const div = document.createElement("div");
     div.innerHTML = `<span class="badge rounded-pill bg-primary">${badge}</span>`;
@@ -258,7 +274,7 @@ function onLoaded() {
   function addSampleCues() {
     const e = cy.edges()[0];
     const div = document.createElement("div");
-    div.innerHTML = `<span class="badge rounded-pill bg-primary">12</span>`;
+    div.innerHTML = `<span title="tooltip" class="badge rounded-pill bg-primary">12</span>`;
 
     const fn = () => {
       console.log("asd");
@@ -411,6 +427,16 @@ function onLoaded() {
       "expand-rectangle-dashed": "bottom-right",
       "expand-rectangle": "bottom-left",
     };
+    let cue2tooltip = {
+      "collapse-ellipse-dashed": "Hide dashed neighbors",
+      "collapse-ellipse": "Hide all neighbors",
+      "collapse-rectangle-dashed": "Hide dashed neighbors",
+      "collapse-rectangle": "Hide all neighbors",
+      "expand-ellipse-dashed": "Show dashed neighbors",
+      "expand-ellipse": "Show all neighbors",
+      "expand-rectangle-dashed": "Show dashed neighbors",
+      "expand-rectangle": "Show all neighbors",
+    };
     if (d[graphElemId] && d[graphElemId][cueName]) {
       e.updateCue({ id: cueName, show: "select" });
     } else {
@@ -420,6 +446,7 @@ function onLoaded() {
         position: cue2pos[cueName],
         zIndex: 10,
         onCueClicked: onClickFn,
+        tooltip: cue2tooltip[cueName],
         imgData: {
           width: IMG_SIZE,
           height: IMG_SIZE,

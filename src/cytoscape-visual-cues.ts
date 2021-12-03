@@ -35,6 +35,7 @@ interface CueOptions {
   zoom2hide: number;
   isFixedSize: boolean;
   zIndex: number;
+  tooltip: string;
 }
 
 interface Cues {
@@ -89,6 +90,7 @@ function deepCopyOptions(o: CueOptions): CueOptions {
     zoom2hide: o.zoom2hide,
     isFixedSize: o.isFixedSize,
     zIndex: o.zIndex,
+    tooltip: o.tooltip,
   };
   if (isNumber(o2.marginX)) {
     o2.marginX = Number(o2.marginX);
@@ -463,6 +465,7 @@ export function addCue(cueOptions: CueOptions) {
       htmlElem.width = opts.imgData?.width;
       htmlElem.height = opts.imgData?.height;
       htmlElem.src = opts.imgData?.src;
+      htmlElem.title = opts.tooltip;
       opts.htmlElem = htmlElem;
     } else {
       htmlElem = opts.htmlElem;
