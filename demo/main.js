@@ -61,6 +61,12 @@ function onLoaded() {
           "background-color": "#a1887f",
         },
       },
+      {
+        selector: "edge:selected",
+        style: {
+          "line-color": "#a1887f",
+        },
+      },
     ],
   }));
 
@@ -125,7 +131,7 @@ function onLoaded() {
   updateCues();
 
   document.getElementById("degreeCentrality").addEventListener("click", () => {
-    const elems = cy.nodes();
+    const elems = cy.nodes(":visible");
     for (let i = 0; i < elems.length; i++) {
       const e = elems[i];
       const r = cy.$().degreeCentrality({ root: e });
