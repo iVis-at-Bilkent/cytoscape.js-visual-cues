@@ -1,4 +1,4 @@
-import { debounce2 } from "./helper";
+import { debounce2, isNullish } from "./helper";
 
 type NodeCuePosition =
   | "top"
@@ -64,8 +64,17 @@ function fillEmptyOptions(o: CueOptions) {
   if (!o.show) {
     o.show = "always";
   }
-  if (o.isFixedSize == undefined || o.isFixedSize == null) {
+  if (isNullish(o.isFixedSize)) {
     o.isFixedSize = false;
+  }
+  if (isNullish(o.marginX)) {
+    o.marginX = 0;
+  }
+  if (isNullish(o.marginY)) {
+    o.marginX = 0;
+  }
+  if (isNullish(o.zoom2hide)) {
+    o.zoom2hide = 0;
   }
 }
 
@@ -344,6 +353,7 @@ function setCueCoordsOfChildren(e, zoom: number) {
 }
 
 function setCueVisibility(e, cues: Cues, eventType: Events2show) {
+  const isElemSelected = e.selected();
   if (!e.visible()) {
     for (let id in cues) {
       cues[id].htmlElem.style.visibility = "hidden";
@@ -363,7 +373,7 @@ function setCueVisibility(e, cues: Cues, eventType: Events2show) {
           cues[id].htmlElem.style.visibility = "visible";
         }
       } else if (showType == "select") {
-        if (eventType == "select") {
+        if (eventType == "select" || isElemSelected) {
           cues[id].htmlElem.style.visibility = "visible";
         } else if (eventType == "unselect") {
           cues[id].htmlElem.style.visibility = "hidden";
@@ -496,7 +506,7 @@ export function addCue(cueOptions: CueOptions) {
     const existingCuesData = allCues[id];
     if (existingCuesData) {
       let cueId = opts.id;
-      if (cueId == null || cueId == undefined || cueId == "") {
+      if (isNullish(cueId) || cueId == "") {
         cueId = 0;
         while (existingCuesData.cues[cueId]) {
           cueId++;
@@ -510,7 +520,7 @@ export function addCue(cueOptions: CueOptions) {
     } else {
       addEventListeners4Elem(e, cy, positionHandlerFn, styleHandlerFn);
       let cueId = opts.id;
-      if (cueId == null || cueId == undefined || cueId == "") {
+      if (isNullish(cueId) || cueId == "") {
         cueId = 0;
       }
       let cues: Cues = {};
@@ -530,7 +540,7 @@ export function removeCue(cueId: string | number) {
   const eles = this;
   for (let i = 0; i < eles.length; i++) {
     const e = eles[i];
-    if (cueId !== undefined && cueId != null) {
+    if (!isNullish(cueId)) {
       const cue = allCues[e.id()].cues[cueId];
       if (cue) {
         cue.htmlElem.remove();
@@ -550,6 +560,7 @@ export function removeCue(cueId: string | number) {
 export function updateCue(cueOptions: CueOptions) {
   const eles = this;
   const cueId = cueOptions.id;
+  fillEmptyOptions(cueOptions);
   for (let i = 0; i < eles.length; i++) {
     const opts = cueOptions;
     const e = eles[i];

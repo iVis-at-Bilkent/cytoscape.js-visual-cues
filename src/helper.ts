@@ -8,11 +8,7 @@
  * @param  {boolean=false} immediate
  * @param  {} preConditionFn=null if function returns false, ignore this call
  */
-export function debounce(
-  func,
-  wait: number,
-  immediate: boolean = false,
-) {
+export function debounce(func, wait: number, immediate: boolean = false) {
   let timeout;
   return function () {
     const context = this,
@@ -51,4 +47,8 @@ export function debounce2(fn1: Function, wait: number, fn2: Function) {
       isInit = false;
     }
   };
+}
+
+export function isNullish(o) {
+  return o === undefined || o === null;
 }

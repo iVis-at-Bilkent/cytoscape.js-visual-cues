@@ -387,8 +387,12 @@ function onLoaded() {
     // layoutUtils.placeNewNodes(edges.connectedNodes(":hidden"));
     edges.css("visibility", "visible");
     edges.connectedNodes().css("visibility", "visible");
-    updateCues();
-    cy.layout({ name: "fcose", animate: true, randomize: false }).run();
+    cy.layout({
+      name: "fcose",
+      animate: true,
+      randomize: false,
+      stop: updateCues,
+    }).run();
   }
 
   function hideDashedNei(e) {
@@ -401,8 +405,12 @@ function onLoaded() {
     const nodes2hide = edges.connectedNodes().not(e);
     nodes2hide.css("visibility", "hidden");
     nodes2hide.connectedEdges().css("visibility", "hidden");
-    updateCues();
-    cy.layout({ name: "fcose", animate: true, randomize: false }).run();
+    cy.layout({
+      name: "fcose",
+      animate: true,
+      randomize: false,
+      stop: updateCues,
+    }).run();
   }
 
   function showNei(e) {
@@ -411,8 +419,12 @@ function onLoaded() {
     }
     // layoutUtils.placeNewNodes(e.neighborhood(":hidden"));
     e.neighborhood().css("visibility", "visible");
-    updateCues();
-    cy.layout({ name: "fcose", animate: true, randomize: false }).run();
+    cy.layout({
+      name: "fcose",
+      animate: true,
+      randomize: false,
+      stop: updateCues,
+    }).run();
   }
 
   function hideNei(e) {
@@ -424,8 +436,12 @@ function onLoaded() {
     const nodes2hide = edges.connectedNodes().not(e);
     nodes2hide.css("visibility", "hidden");
     nodes2hide.connectedEdges().css("visibility", "hidden");
-    updateCues();
-    cy.layout({ name: "fcose", animate: true, randomize: false }).run();
+    cy.layout({
+      name: "fcose",
+      animate: true,
+      randomize: false,
+      stop: updateCues,
+    }).run();
   }
 
   function showOrAddCue(e, cueName, onClickFn) {
