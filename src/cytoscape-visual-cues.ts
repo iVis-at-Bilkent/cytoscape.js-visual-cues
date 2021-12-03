@@ -21,8 +21,6 @@ type Events2show =
   | "unselect"
   | "position";
 
-type StrNum = string | number | undefined;
-
 interface CueOptions {
   id: number | string;
   show: "select" | "hover" | "always" | "never";
@@ -354,9 +352,7 @@ function setCueVisibility(e, cues: Cues, eventType: Events2show) {
     const zoom = e.cy().zoom();
     for (let id in cues) {
       const showType = cues[id].show;
-      if (zoom <= cues[id].zoom2hide) {
-        cues[id].htmlElem.style.visibility = "hidden";
-      } else if (showType == "never") {
+      if (zoom <= cues[id].zoom2hide || showType == "never") {
         cues[id].htmlElem.style.visibility = "hidden";
       } else if (showType == "always") {
         cues[id].htmlElem.style.visibility = "visible";
@@ -435,9 +431,7 @@ function prepareHTMLElement(container, htmlElem, opts: CueOptions, e) {
   htmlElem.style.left = "0px";
   htmlElem.style.zIndex = opts.zIndex;
   htmlElem.title = opts.tooltip;
-  if (opts.show != "always") {
-    htmlElem.style.visibility = "hidden";
-  }
+  htmlElem.style.visibility = "hidden";
   htmlElem.addEventListener("click", () => {
     if (opts.onCueClicked) {
       opts.onCueClicked(e);

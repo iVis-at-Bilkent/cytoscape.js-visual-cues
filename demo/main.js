@@ -127,8 +127,10 @@ function onLoaded() {
   loadSample("graph4cues");
   initToasts();
   hideSomeNodes();
-  addSampleCues();
-  updateCues();
+  setTimeout(() => {
+    addSampleCues();
+    updateCues();
+  }, 500);
 
   document.getElementById("degreeCentrality").addEventListener("click", () => {
     const elems = cy.nodes(":visible");
@@ -137,6 +139,10 @@ function onLoaded() {
       const r = cy.$().degreeCentrality({ root: e });
       buildCue4Elem(e, r.degree);
     }
+  });
+
+  document.getElementById("recalculateLayout").addEventListener("click", () => {
+    cy.layout({ name: "fcose", animate: true, randomize: true }).run();
   });
 
   document.getElementById("deleteSelected").addEventListener("click", () => {
