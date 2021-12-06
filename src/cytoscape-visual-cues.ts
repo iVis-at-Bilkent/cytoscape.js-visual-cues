@@ -488,19 +488,24 @@ export function addCue(cueOptions: CueOptions) {
 
     const id = e.id() + "";
     let cueOpacities = {};
+    let isOnMove = false;
     const positionHandlerFn = debounce2(
       () => {
+        isOnMove = false;
         onElemMove(e, cueOpacities, true);
         setCueVisibility(e, allCues[id].cues, "position");
       },
       UPDATE_POPPER_WAIT,
       () => {
+        isOnMove = true;
         switchCueOpacities(allCues[id].cues, cueOpacities, true);
       }
     );
 
     const styleHandlerFn = (event) => {
-      setCueVisibility(e, allCues[id].cues, event.type);
+      if (!isOnMove) {
+        setCueVisibility(e, allCues[id].cues, event.type);
+      }
     };
 
     const existingCuesData = allCues[id];

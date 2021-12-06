@@ -172,8 +172,11 @@ function onLoaded() {
   });
 
   document.getElementById("showAllHidden").addEventListener("click", () => {
+    const hiddenCount = cy.$(":hidden").length;
     cy.$(":hidden").css("visibility", "visible");
-    updateCues();
+    if (hiddenCount > 0) {
+      runLayoutThenUpdateCues();
+    }
   });
 
   document.getElementById("addCue").addEventListener("click", () => {
