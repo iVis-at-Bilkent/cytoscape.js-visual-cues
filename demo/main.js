@@ -35,6 +35,8 @@ function onLoaded() {
         selector: "node.barrel",
         style: {
           shape: "round-octagon",
+          "text-valign": "bottom",
+          color: "black",
         },
       },
       {
@@ -62,6 +64,12 @@ function onLoaded() {
         },
       },
       {
+        selector: ":parent",
+        style: {
+          "background-opacity": 0.2,
+        },
+      },
+      {
         selector: "edge:selected",
         style: {
           "line-color": "#a1887f",
@@ -79,13 +87,13 @@ function onLoaded() {
       { data: { id: "n18" }, classes: "barrel" },
       { data: { id: "n19" }, classes: "barrel" },
       { data: { id: "n20" }, classes: "barrel" },
-      { data: { id: "n1" }, classes: "rect" },
-      { data: { id: "n2" }, classes: "circle" },
-      { data: { id: "n3" }, classes: "rect" },
-      { data: { id: "n4" }, classes: "rect" },
-      { data: { id: "n5" }, classes: "circle" },
-      { data: { id: "n6" }, classes: "circle" },
-      { data: { id: "n7" }, classes: "circle" },
+      { data: { id: "n1", parent: "c0" }, classes: "rect" },
+      { data: { id: "n2", parent: "c0" }, classes: "circle" },
+      { data: { id: "n3", parent: "c0" }, classes: "rect" },
+      { data: { id: "n4", parent: "c0" }, classes: "rect" },
+      { data: { id: "n5", parent: "c0" }, classes: "circle" },
+      { data: { id: "n6", parent: "c0" }, classes: "circle" },
+      { data: { id: "n7", parent: "c0" }, classes: "circle" },
       { data: { id: "n8" }, classes: "rect" },
       { data: { id: "n9" }, classes: "rect" },
       { data: { id: "n10" }, classes: "circle" },
@@ -96,6 +104,7 @@ function onLoaded() {
       { data: { id: "n15" }, classes: "rect" },
       { data: { id: "n16" }, classes: "circle" },
       { data: { id: "n17" }, classes: "circle" },
+      { data: { id: "c0" }, classes: "barrel" },
     ],
     edges: [
       { data: { source: "n19", target: "n20" }, classes: "solid" },
@@ -563,6 +572,27 @@ function onLoaded() {
           hideCueIfExists(e, "collapse-ellipse");
         }
       }
+    }
+
+    const parents = cy.nodes(":parent:visible");
+    const cueId = "compoundCue";
+    for (let i = 0; i < parents.length; i++) {
+      const e = parents[i];
+      const d = e.getCueData();
+      const eId = e.id();
+      if (d[eId] && d[eId][cueId]) {
+        e.removeCue();
+      }
+      const div = document.createElement("div");
+      div.innerHTML = `<span class="badge rounded-pill bg-primary">${
+        e.children(":visible").length + " / " + e.children().length
+      }</span>`;
+      e.addCue({
+        id: cueId,
+        show: "select",
+        position: "top-right",
+        htmlElem: div,
+      });
     }
   }
 }

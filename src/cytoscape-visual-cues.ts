@@ -504,7 +504,11 @@ export function addCue(cueOptions: CueOptions) {
 
     const styleHandlerFn = (event) => {
       if (!isOnMove) {
-        setCueVisibility(e, allCues[id].cues, event.type);
+        const target = event.target;
+        const targetId = target.id();
+        if (allCues[targetId]) {
+          setCueVisibility(target, allCues[targetId].cues, event.type);
+        }
       }
     };
 
