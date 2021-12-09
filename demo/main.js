@@ -274,7 +274,11 @@ function onLoaded() {
   function buildCue4Elem(e, badge) {
     const div = document.createElement("div");
     div.innerHTML = `<span class="badge rounded-pill bg-primary">${badge}</span>`;
-    e.addCue({ show: "always", position: "bottom", htmlElem: div });
+    let pos = "bottom";
+    if (e.hasClass("circle")) {
+      pos = "bottom-right";
+    }
+    e.addCue({ show: "always", position: pos, htmlElem: div });
   }
 
   function haveAnySelected() {

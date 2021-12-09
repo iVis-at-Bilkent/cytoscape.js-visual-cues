@@ -441,7 +441,9 @@ function prepareHTMLElement(container, htmlElem, opts: CueOptions, e) {
   htmlElem.style.left = "0px";
   htmlElem.style.zIndex = opts.zIndex;
   htmlElem.title = opts.tooltip;
-  htmlElem.style.visibility = "hidden";
+  if (opts.show != "always") {
+    htmlElem.style.visibility = "hidden";
+  }
   htmlElem.addEventListener("click", () => {
     if (opts.onCueClicked) {
       opts.onCueClicked(e);
