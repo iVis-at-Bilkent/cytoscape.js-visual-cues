@@ -313,7 +313,7 @@ function onLoaded() {
 
   function buildCue4Elem(e, badge) {
     const div = document.createElement("div");
-    div.innerHTML = `<span class="badge rounded-pill bg-primary">${badge}</span>`;
+    div.innerHTML = `<span class="badge rounded-pill bg-info">${badge}</span>`;
     let pos = "bottom";
     if (e.hasClass("circle")) {
       pos = "bottom-right";
