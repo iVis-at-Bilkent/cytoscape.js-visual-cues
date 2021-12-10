@@ -377,59 +377,29 @@ function onLoaded() {
     }
 
     const n = cy.nodes()[0];
-    n.addCue({ htmlElem: div, position: "top", onCueClicked: fn, zIndex: 100 });
-    n.addCue({
-      htmlElem: div,
-      position: "bottom",
-      onCueClicked: fn,
-      zIndex: 100,
-      isFixedSize: true,
-    });
-    n.addCue({
-      htmlElem: div,
-      position: "right",
-      onCueClicked: fn,
-      zIndex: 100,
-    });
-    n.addCue({
-      htmlElem: div,
-      position: "left",
-      onCueClicked: fn,
-      zIndex: 100,
-    });
-    n.addCue({
-      htmlElem: div,
-      position: "center",
-      onCueClicked: fn,
-      zIndex: 100,
-    });
-    n.addCue({
-      htmlElem: div,
-      position: "top-left",
-      onCueClicked: fn,
-      zIndex: 100,
-    });
-    n.addCue({
-      htmlElem: div,
-      position: "top-right",
-      onCueClicked: fn,
-      zIndex: 100,
-      zoom2hide: 3,
-    });
-    n.addCue({
-      htmlElem: div,
-      position: "bottom-right",
-      onCueClicked: fn,
-      zIndex: 100,
-      zoom2hide: 2,
-    });
-    n.addCue({
-      htmlElem: div,
-      position: "bottom-left",
-      onCueClicked: fn,
-      zIndex: 100,
-      zoom2hide: 1,
-    });
+    const positions2 = [
+      "top",
+      "top-right",
+      "top-left",
+      "right",
+      "left",
+      "center",
+      "bottom",
+      "bottom-right",
+      "bottom-left",
+    ];
+    for (let i = 0; i < positions2.length; i++) {
+      if (i > 5) {
+        n.addCue({
+          htmlElem: div,
+          position: positions2[i],
+          marginX: "%-20",
+          marginY: "%-20",
+        });
+      } else {
+        n.addCue({ htmlElem: div, position: positions2[i] });
+      }
+    }
   }
 
   function hideSomeNodes() {

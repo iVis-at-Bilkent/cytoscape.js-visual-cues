@@ -30,7 +30,7 @@ function fillEmptyOptions(o: CueOptions) {
     o.marginX = 0;
   }
   if (isNullish(o.marginY)) {
-    o.marginX = 0;
+    o.marginY = 0;
   }
   if (isNullish(o.zoom2hide)) {
     o.zoom2hide = 0;
