@@ -10,6 +10,9 @@ import {
   Point,
   Str2CueData,
   pointOnRect,
+  isNumber,
+  quadraticBezierCurve,
+  midPoint,
 } from "./helper";
 
 const UPDATE_POPPER_WAIT = 100;
@@ -78,7 +81,7 @@ function getCuePositionOnEdge(edge, cuePos: EdgeCuePosition): Point | void {
   }
   const controlPoints = edge.controlPoints();
   if (controlPoints) {
-    return getPosition4CtrlEdge(edge, cuePos);
+    return getPosition4CurvedEdge(edge, cuePos);
   }
   if (cuePos == "center") {
     return;
@@ -127,17 +130,54 @@ function getPosition4SegmentedEdge(edge: any, pos: EdgeCuePosition): Point {
   if (segments.length % 2 == 0) {
     const p1 = segments[i1];
     const p2 = segments[i1 - 1];
-    return { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+    return midPoint(p1, p2);
   }
   return segments[i1];
 }
 
-function getPosition4CtrlEdge(edge: any, cuePos: EdgeCuePosition): Point {
-  return { x: 0, y: 0 };
-}
-
-function isNumber(value: string | number): boolean {
-  return value != null && !isNaN(Number(value.toString()));
+function getPosition4CurvedEdge(edge, pos: EdgeCuePosition): Point {
+  const ctrlPoints = edge.renderedControlPoints();
+  if (pos == "target") {
+    const b = edge.target().renderedBoundingBox({
+      includeLabels: false,
+      includeOverlays: false,
+    });
+    const p = ctrlPoints[ctrlPoints.length - 1];
+    return pointOnRect(p, b);
+  }
+  if (pos == "source") {
+    const b = edge.source().renderedBoundingBox({
+      includeLabels: false,
+      includeOverlays: false,
+    });
+    const p = ctrlPoints[0];
+    return pointOnRect(p, b);
+  }
+  const i1 = Math.floor(ctrlPoints.length / 2);
+  if (ctrlPoints.length % 2 == 0) {
+    const p1 = ctrlPoints[i1];
+    const p2 = ctrlPoints[i1 - 1];
+    return midPoint(p1, p2);
+  }
+  let prev = edge.renderedSourceEndpoint();
+  let next = edge.renderedTargetEndpoint();
+  if (i1 > 0) {
+    prev = ctrlPoints[i1 - 1];
+  }
+  if (i1 < ctrlPoints.length - 1) {
+    next = ctrlPoints[i1 + 1];
+  }
+  let weight = 0.5;
+  if (ctrlPoints.length == 1) {
+    weight = Number(edge.css("control-point-weights"));
+    return quadraticBezierCurve(prev, ctrlPoints[i1], next, weight);
+  }
+  return quadraticBezierCurve(
+    midPoint(prev, ctrlPoints[i1]),
+    ctrlPoints[i1],
+    midPoint(ctrlPoints[i1], next),
+    weight
+  );
 }
 
 function getMargins(c: CueOptions, graphElem): Point {

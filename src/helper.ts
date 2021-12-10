@@ -109,6 +109,35 @@ export function isNullish(o) {
   return o === undefined || o === null;
 }
 
+export function isNumber(value: string | number): boolean {
+  return value != null && !isNaN(Number(value.toString()));
+}
+
+// https://en.wikipedia.org/wiki/B%C3%A9zier_curve#Quadratic_B%C3%A9zier_curves
+export function quadraticBezierCurve(
+  p0: Point,
+  p1: Point,
+  p2: Point,
+  t: number
+): Point {
+  const r = 1 - t;
+  const part1 = scalarMult(vectorAdd(scalarMult(p0, r), scalarMult(p1, t)), r);
+  const part2 = scalarMult(vectorAdd(scalarMult(p1, r), scalarMult(p2, t)), t);
+  return vectorAdd(part1, part2);
+}
+
+export function midPoint(p1: Point, p2: Point): Point {
+  return { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+}
+
+function scalarMult(p: Point, s: number): Point {
+  return { x: p.x * s, y: p.y * s };
+}
+
+function vectorAdd(p1: Point, p2: Point): Point {
+  return { x: p1.x + p2.x, y: p1.y + p2.y };
+}
+
 /**
  * Finds the intersection point between the rectangle with parallel sides to the x and y
  * axes the half-line pointing towards (x,y) originating from the middle of the rectangle

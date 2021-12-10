@@ -76,19 +76,43 @@ function onLoaded() {
         },
       },
       {
-        selector: "edge.3bended",
+        selector: "edge.2bended",
         style: {
-          "segment-distances": "40px -40px",
-          "segment-weights": "0.2 0.8",
+          "segment-distances": "10px -10px",
+          "segment-weights": "0.2 0.4",
           "curve-style": "segments",
         },
       },
       {
-        selector: "edge.2bended",
+        selector: "edge.1bended",
         style: {
-          "segment-distances": "100px",
-          "segment-weights": "1",
+          "segment-distances": "40px",
+          "segment-weights": "0.8",
           "curve-style": "segments",
+        },
+      },
+      {
+        selector: "edge.1control",
+        style: {
+          "control-point-distances": "40px",
+          "control-point-weights": "0.3",
+          "curve-style": "unbundled-bezier",
+        },
+      },
+      {
+        selector: "edge.2control",
+        style: {
+          "control-point-distances": "40px -40px",
+          "control-point-weights": "0.2 0.8",
+          "curve-style": "unbundled-bezier",
+        },
+      },
+      {
+        selector: "edge.3control",
+        style: {
+          "control-point-distances": "40px -60px 80px",
+          "control-point-weights": "0.2 0.6 0.8",
+          "curve-style": "unbundled-bezier",
         },
       },
     ],
@@ -123,7 +147,7 @@ function onLoaded() {
       { data: { id: "c0" }, classes: "barrel" },
     ],
     edges: [
-      { data: { source: "n19", target: "n20" }, classes: "solid" },
+      { data: { source: "n19", target: "n20" }, classes: "solid 3control" },
       { data: { source: "n1", target: "n2" }, classes: "dashed" },
       { data: { source: "n1", target: "n3" }, classes: "solid" },
       { data: { source: "n2", target: "n3" }, classes: "dashed" },
@@ -135,17 +159,17 @@ function onLoaded() {
       { data: { source: "n5", target: "n6" }, classes: "dashed" },
       { data: { source: "n6", target: "n7" }, classes: "solid" },
       { data: { source: "n6", target: "n8" }, classes: "dashed" },
-      { data: { source: "n8", target: "n9" }, classes: "solid" },
+      { data: { source: "n8", target: "n9" }, classes: "solid 1control" },
       { data: { source: "n8", target: "n10" }, classes: "dashed" },
       { data: { source: "n8", target: "n11" }, classes: "solid" },
       { data: { source: "n9", target: "n11" }, classes: "dashed" },
       { data: { source: "n11", target: "n12" }, classes: "solid" },
-      { data: { source: "n11", target: "n13" }, classes: "solid 3bended" },
-      { data: { source: "n11", target: "n14" }, classes: "solid " },
+      { data: { source: "n11", target: "n13" }, classes: "solid 2bended" },
+      { data: { source: "n11", target: "n14" }, classes: "solid 2control" },
       { data: { source: "n13", target: "n15" }, classes: "dashed" },
       { data: { source: "n13", target: "n16" }, classes: "solid" },
       { data: { source: "n15", target: "n16" }, classes: "dashed" },
-      { data: { source: "n15", target: "n17" }, classes: "dashed 2bended" },
+      { data: { source: "n15", target: "n17" }, classes: "dashed 1bended" },
     ],
   };
   const IMG_SIZE = 24;
@@ -341,7 +365,7 @@ function onLoaded() {
       });
     }
 
-    const e2 = cy.edges(".3bended, .2bended");
+    const e2 = cy.edges(".2bended, .1bended, .2control, .1control");
     const positions = ["target", "source", "center"];
     for (let i = 0; i < positions.length; i++) {
       e2.addCue({
