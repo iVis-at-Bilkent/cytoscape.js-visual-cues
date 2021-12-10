@@ -1,60 +1,16 @@
-import { debounce2, isNullish } from "./helper";
-
-type NodeCuePosition =
-  | "top"
-  | "center"
-  | "bottom"
-  | "right"
-  | "left"
-  | "top-left"
-  | "top-right"
-  | "bottom-right"
-  | "bottom-left";
-
-type EdgeCuePosition = "target" | "source" | "center";
-
-type Events2show =
-  | "mouseover"
-  | "mouseout"
-  | "style"
-  | "select"
-  | "unselect"
-  | "position";
-
-interface CueOptions {
-  id: number | string;
-  show: "select" | "hover" | "always" | "never";
-  position: NodeCuePosition | EdgeCuePosition;
-  marginX: string | number;
-  marginY: string | number;
-  onCueClicked: ((ele: any) => void) | undefined;
-  htmlElem: HTMLElement;
-  imgData: { width: number; height: number; src: string } | null;
-  zoom2hide: number;
-  isFixedSize: boolean;
-  zIndex: number;
-  tooltip: string;
-}
-
-interface Cues {
-  [key: string]: CueOptions;
-}
-
-interface CueData {
-  cues: Cues;
-  graphElem: any;
-  positionFn: Function;
-  styleFn: Function;
-}
-
-interface Str2CueData {
-  [key: string]: CueData;
-}
-
-interface Point {
-  x: number;
-  y: number;
-}
+import {
+  CueData,
+  CueOptions,
+  Cues,
+  debounce2,
+  EdgeCuePosition,
+  Events2show,
+  isNullish,
+  NodeCuePosition,
+  Point,
+  Str2CueData,
+  pointOnRect,
+} from "./helper";
 
 const UPDATE_POPPER_WAIT = 100;
 const STYLE_EVENTS = "style mouseover mouseout select unselect";
@@ -115,101 +71,69 @@ function deepCopyOptions(o: CueOptions): CueOptions {
   return o2;
 }
 
-/**
- * Finds the intersection point between the rectangle with parallel sides to the x and y
- * axes the half-line pointing towards (x,y) originating from the middle of the rectangle
- * Note: the function works given min[XY] <= max[XY],
- *       even though minY may not be the "top" of the rectangle
- *       because the coordinate system is flipped.
- * Note: if the input is inside the rectangle,
- *       the line segment wouldn't have an intersection with the rectangle,
- *       but the projected half-line does.
- * Warning: passing in the middle of the rectangle will return the midpoint itself
- *          there are infinitely many half-lines projected in all directions,
- *          so let's just shortcut to midpoint (GIGO).
- *
- * @param x:Number x coordinate of point to build the half-line from
- * @param y:Number y coordinate of point to build the half-line from
- * @param minX:Number the "left" side of the rectangle
- * @param minY:Number the "top" side of the rectangle
- * @param maxX:Number the "right" side of the rectangle
- * @param maxY:Number the "bottom" side of the rectangle
- * @return an object with x and y members for the intersection
- * @throws if validate == true and (x,y) is inside the rectangle
- * @author TWiStErRob
- * @licence Dual CC0/WTFPL/Unlicence, whatever floats your boat
- * @see <a href="http://stackoverflow.com/a/31254199/253468">source</a>
- * @see <a href="http://stackoverflow.com/a/18292964/253468">based on</a>
- */
-function pointOnRect(x, y, minX, minY, maxX, maxY): Point {
-  let midX = (minX + maxX) / 2;
-  let midY = (minY + maxY) / 2;
-  // if (midX - x == 0) -> m == ±Inf -> minYx/maxYx == x (because value / ±Inf = ±0)
-  let m = (midY - y) / (midX - x);
-
-  if (x <= midX) {
-    // check "left" side
-    let minXy = m * (minX - x) + y;
-    if (minY <= minXy && minXy <= maxY) return { x: minX, y: minXy };
+function getCuePositionOnEdge(edge, cuePos: EdgeCuePosition): Point | void {
+  const segmentPoints = edge.segmentPoints();
+  if (segmentPoints) {
+    return getPosition4SegmentedEdge(edge, cuePos);
   }
-
-  if (x >= midX) {
-    // check "right" side
-    let maxXy = m * (maxX - x) + y;
-    if (minY <= maxXy && maxXy <= maxY) return { x: maxX, y: maxXy };
+  const controlPoints = edge.controlPoints();
+  if (controlPoints) {
+    return getPosition4CtrlEdge(edge, cuePos);
   }
-
-  if (y <= midY) {
-    // check "top" side
-    let minYx = (minY - y) / m + x;
-    if (minX <= minYx && minYx <= maxX) return { x: minYx, y: minY };
+  if (cuePos == "center") {
+    return;
   }
-
-  if (y >= midY) {
-    // check "bottom" side
-    let maxYx = (maxY - y) / m + x;
-    if (minX <= maxYx && maxYx <= maxX) return { x: maxYx, y: maxY };
-  }
-
-  // edge case when finding midpoint intersection: m = 0/0 = NaN
-  if (x === midX && y === midY) return { x: x, y: y };
-
-  // Should never happen :) If it does, please tell me!
-  throw (
-    "Cannot find intersection for " +
-    [x, y] +
-    " inside rectangle " +
-    [minX, minY] +
-    " - " +
-    [maxX, maxY] +
-    "."
-  );
-}
-
-function getCuePositionOnEdge(cueData: CueData, isSrc: boolean): Point {
   let b: any = {};
-  if (isSrc) {
-    b = cueData.graphElem.source().renderedBoundingBox({
+  if (cuePos == "source") {
+    b = edge.source().renderedBoundingBox({
       includeLabels: false,
       includeOverlays: false,
     });
   } else {
-    b = cueData.graphElem.target().renderedBoundingBox({
+    b = edge.target().renderedBoundingBox({
       includeLabels: false,
       includeOverlays: false,
     });
   }
   let otherEnd = { x: 0, y: 0 };
-  if (isSrc) {
-    otherEnd = cueData.graphElem.renderedTargetEndpoint();
+  if (cuePos == "source") {
+    otherEnd = edge.renderedTargetEndpoint();
   } else {
-    otherEnd = cueData.graphElem.renderedSourceEndpoint();
+    otherEnd = edge.renderedSourceEndpoint();
   }
-  const l = Math.min(b.x1, b.x2);
-  const t = Math.min(b.y1, b.y2);
-  const r = Math.max(b.x1, b.x2);
-  const bo = Math.max(b.y1, b.y2);
-  return pointOnRect(otherEnd.x, otherEnd.y, l, t, r, bo);
+  return pointOnRect(otherEnd, b);
+}
+
+function getPosition4SegmentedEdge(edge: any, pos: EdgeCuePosition): Point {
+  const segments = edge.renderedSegmentPoints();
+  if (pos == "target") {
+    const b = edge.target().renderedBoundingBox({
+      includeLabels: false,
+      includeOverlays: false,
+    });
+    const p = segments[segments.length - 1];
+    return pointOnRect(p, b);
+  }
+  if (pos == "source") {
+    const b = edge.source().renderedBoundingBox({
+      includeLabels: false,
+      includeOverlays: false,
+    });
+    const p = segments[0];
+    return pointOnRect(p, b);
+  }
+
+  const i1 = Math.floor(segments.length / 2);
+  if (segments.length % 2 == 0) {
+    const p1 = segments[i1];
+    const p2 = segments[i1 - 1];
+    return { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+  }
+  return segments[i1];
+}
+
+function getPosition4CtrlEdge(edge: any, cuePos: EdgeCuePosition): Point {
+  return { x: 0, y: 0 };
 }
 
 function isNumber(value: string | number): boolean {
@@ -226,13 +150,13 @@ function getMargins(c: CueOptions, graphElem): Point {
     if (typeof c.marginX == "number") {
       r.x = c.marginX;
     } else if (typeof c.marginX == "string") {
-      const marginX = (Number(c.marginX.substr(1)) / 100) * bb.w;
+      const marginX = (Number(c.marginX.substring(1)) / 100) * bb.w;
       r.x = marginX;
     }
     if (typeof c.marginY == "number") {
       r.y = c.marginY;
     } else if (typeof c.marginY == "string") {
-      const marginY = (Number(c.marginY.substr(1)) / 100) * bb.h;
+      const marginY = (Number(c.marginY.substring(1)) / 100) * bb.h;
       r.y = marginY;
     }
   } else {
@@ -249,7 +173,7 @@ function getMargins(c: CueOptions, graphElem): Point {
       r.y += c.marginX * sin;
       r.x += c.marginX * cos;
     } else if (typeof c.marginX == "string") {
-      const delta = edgeLength * (Number(c.marginX.substr(1)) / 100);
+      const delta = edgeLength * (Number(c.marginX.substring(1)) / 100);
       r.y += delta * sin;
       r.x += delta * cos;
     }
@@ -258,7 +182,7 @@ function getMargins(c: CueOptions, graphElem): Point {
       r.x += c.marginY * sin;
       r.y += c.marginY * cos;
     } else if (typeof c.marginY == "string") {
-      const delta = wid * (Number(c.marginY.substr(1)) / 100);
+      const delta = wid * (Number(c.marginY.substring(1)) / 100);
       r.x += delta * sin;
       r.y += delta * cos;
     }
@@ -287,6 +211,7 @@ function setCueCoords(cueData: CueData, cyZoom: number) {
     includeLabels: false,
     includeOverlays: false,
   });
+  const isEdge = cueData.graphElem.isEdge();
 
   for (let id in cueData.cues) {
     const cue = cueData.cues[id];
@@ -305,15 +230,12 @@ function setCueCoords(cueData: CueData, cyZoom: number) {
     } else if (pos == "left" || pos == "top-left" || pos == "bottom-left") {
       x = bb.x1 - w / 2;
     }
-    if (pos == "source") {
-      const p = getCuePositionOnEdge(cueData, true);
-      x = p.x - w / 2;
-      y = p.y - h / 2;
-    }
-    if (pos == "target") {
-      const p = getCuePositionOnEdge(cueData, false);
-      x = p.x - w / 2;
-      y = p.y - h / 2;
+    if (isEdge) {
+      const p = getCuePositionOnEdge(cueData.graphElem, pos as EdgeCuePosition);
+      if (p) {
+        x = p.x - w / 2;
+        y = p.y - h / 2;
+      }
     }
     const margins = getMargins(cue, cueData.graphElem);
     x += margins.x;

@@ -75,6 +75,22 @@ function onLoaded() {
           "line-color": "#a1887f",
         },
       },
+      {
+        selector: "edge.3bended",
+        style: {
+          "segment-distances": "40px -40px",
+          "segment-weights": "0.2 0.8",
+          "curve-style": "segments",
+        },
+      },
+      {
+        selector: "edge.2bended",
+        style: {
+          "segment-distances": "100px",
+          "segment-weights": "1",
+          "curve-style": "segments",
+        },
+      },
     ],
   }));
 
@@ -124,12 +140,12 @@ function onLoaded() {
       { data: { source: "n8", target: "n11" }, classes: "solid" },
       { data: { source: "n9", target: "n11" }, classes: "dashed" },
       { data: { source: "n11", target: "n12" }, classes: "solid" },
-      { data: { source: "n11", target: "n13" }, classes: "solid" },
-      { data: { source: "n11", target: "n14" }, classes: "solid" },
+      { data: { source: "n11", target: "n13" }, classes: "solid 3bended" },
+      { data: { source: "n11", target: "n14" }, classes: "solid " },
       { data: { source: "n13", target: "n15" }, classes: "dashed" },
       { data: { source: "n13", target: "n16" }, classes: "solid" },
       { data: { source: "n15", target: "n16" }, classes: "dashed" },
-      { data: { source: "n15", target: "n17" }, classes: "dashed" },
+      { data: { source: "n15", target: "n17" }, classes: "dashed 2bended" },
     ],
   };
   const IMG_SIZE = 24;
@@ -305,30 +321,36 @@ function onLoaded() {
   function addSampleCues() {
     const e = cy.edges()[0];
     const div = document.createElement("div");
-    div.innerHTML = `<span title="tooltip" class="badge rounded-pill bg-primary">12</span>`;
+    div.innerHTML = `<span title="tooltip" class="badge rounded-pill bg-primary">3</span>`;
 
     const fn = () => {
       console.log("asd");
     };
-    e.addCue({
-      htmlElem: div,
-      position: "target",
-      onCueClicked: fn,
-      zIndex: 100,
-      show: "select",
-    });
-    e.addCue({
-      htmlElem: div,
-      position: "source",
-      onCueClicked: fn,
-      zIndex: 100,
-      show: "hover",
-    });
-    e.addCue({
-      htmlElem: div,
-      position: "center",
-      zIndex: 100,
-    });
+    const edgeCues = [
+      { position: "target", show: "select" },
+      { position: "source", show: "hover" },
+      { position: "center", show: "always" },
+    ];
+    for (let i = 0; i < edgeCues.length; i++) {
+      e.addCue({
+        htmlElem: div,
+        position: edgeCues[i].position,
+        onCueClicked: fn,
+        zIndex: 100,
+        show: edgeCues[i].show,
+      });
+    }
+
+    const e2 = cy.edges(".3bended, .2bended");
+    const positions = ["target", "source", "center"];
+    for (let i = 0; i < positions.length; i++) {
+      e2.addCue({
+        htmlElem: div,
+        position: edgeCues[i].position,
+        onCueClicked: fn,
+        zIndex: 100,
+      });
+    }
 
     const n = cy.nodes()[0];
     n.addCue({ htmlElem: div, position: "top", onCueClicked: fn, zIndex: 100 });
