@@ -25,6 +25,7 @@
   "scripts": {
     "build": "rollup -c --environment NODE_ENV:production",
     "build-dev": "rollup -c",
+    "build-tripudio": "rollup -c tripudio.config.js",
     "dev": "rollup -c -w",
     "demo": "rollup -c demo.config.js -w -m",
     "test": "ts-node test/unit/test.ts",
