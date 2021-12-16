@@ -36,6 +36,9 @@ function fillEmptyOptions(o: CueOptions) {
   if (isNullish(o.zoom2hide)) {
     o.zoom2hide = 0;
   }
+  if (isNullish(o.tooltip)) {
+    o.tooltip = "";
+  }
 }
 
 /** create a deep copy of options since the same HTML element might used to make multiple calls
