@@ -247,7 +247,7 @@ function checkCuePosition(graphElem, pos: NodeCuePosition | EdgeCuePosition) {
   }
 }
 
-function setCueCoords(cueData: CueData, cyZoom: number) {
+function setCueCoords(cueData: CueData, cyZoom: number, cueId?) {
   // let the nodes resize first
   let ratio = 1;
   let z1 = (cyZoom / 2) * ratio;
@@ -258,6 +258,9 @@ function setCueCoords(cueData: CueData, cyZoom: number) {
   const isEdge = cueData.graphElem.isEdge();
 
   for (let id in cueData.cues) {
+    if (cueId) {
+      id = cueId;
+    }
     const cue = cueData.cues[id];
     const w = cue.htmlElem.clientWidth;
     const h = cue.htmlElem.clientHeight;
@@ -289,6 +292,9 @@ function setCueCoords(cueData: CueData, cyZoom: number) {
       scale = "";
     }
     cue.htmlElem.style.transform = `translate(${x}px, ${y}px) ${scale}`;
+    if (cueId) {
+      return;
+    }
   }
 }
 
@@ -318,7 +324,7 @@ function setCueCoordsOfChildren(e, zoom: number) {
   }
 }
 
-function setCueVisibility(e, cues: Cues, eventType: Events2show) {
+function setCueVisibility(e, cues: Cues, eventType: Events2show, cueId?) {
   const isElemSelected = e.selected();
   if (!e.visible()) {
     for (let id in cues) {
@@ -327,6 +333,9 @@ function setCueVisibility(e, cues: Cues, eventType: Events2show) {
   } else {
     const zoom = e.cy().zoom();
     for (let id in cues) {
+      if (cueId) {
+        id = cueId;
+      }
       const showType = cues[id].show;
       if (zoom <= cues[id].zoom2hide || showType == "never") {
         cues[id].htmlElem.style.visibility = "hidden";
@@ -344,6 +353,9 @@ function setCueVisibility(e, cues: Cues, eventType: Events2show) {
         } else if (eventType == "unselect") {
           cues[id].htmlElem.style.visibility = "hidden";
         }
+      }
+      if (cueId) {
+        return;
       }
     }
   }
@@ -473,12 +485,18 @@ export function addCue(cueOptions: CueOptions) {
       }
     );
 
-    const styleHandlerFn = (event) => {
+    const styleHandlerFn = (event, cueId = undefined) => {
       if (!isOnMove) {
         const target = event.target;
         const targetId = target.id();
         if (allCues[targetId]) {
-          setCueVisibility(target, allCues[targetId].cues, event.type);
+          if (cueId) {
+            const c: Cues = {};
+            c[cueId] = allCues[targetId].cues[cueId];
+            setCueVisibility(target, c, event.type);
+          } else {
+            setCueVisibility(target, allCues[targetId].cues, event.type);
+          }
         }
       }
     };
@@ -545,6 +563,7 @@ export function removeCue(cueId: string | number) {
  */
 export function updateCue(cueOptions: CueOptions) {
   const eles = this;
+  const cy = this.cy();
   const cueId = cueOptions.id;
   fillEmptyOptions(cueOptions);
   for (let i = 0; i < eles.length; i++) {
@@ -562,8 +581,8 @@ export function updateCue(cueOptions: CueOptions) {
         updateCueOptions(allCues[id].cues[k], cueOptions);
       }
     }
-    allCues[id].positionFn();
-    allCues[id].styleFn({ type: "position" });
+    setCueCoords(allCues[id], cy.zoom(), cueId);
+    setCueVisibility(e, allCues[id].cues, "style", cueId);
   }
 }
 
