@@ -25,7 +25,7 @@ export interface CueOptions {
   position: NodeCuePosition | EdgeCuePosition;
   marginX: string | number;
   marginY: string | number;
-  onCueClicked: ((ele: any) => void) | undefined;
+  onCueClicked: ((ele: any, id: number | string) => void) | undefined;
   htmlElem: HTMLElement;
   imgData: { width: number; height: number; src: string } | null;
   zoom2hide: number;

@@ -409,7 +409,7 @@ function prepareHTMLElement(container, htmlElem, opts: CueOptions, e) {
   }
   htmlElem.addEventListener("click", () => {
     if (opts.onCueClicked) {
-      opts.onCueClicked(e);
+      opts.onCueClicked(e, opts.id);
     }
   });
 
