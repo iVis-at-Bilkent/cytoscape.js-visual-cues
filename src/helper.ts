@@ -49,6 +49,10 @@ export interface Str2CueData {
   [key: string]: CueData;
 }
 
+export interface Str2Cues {
+  [key: string]: Cues;
+}
+
 export interface Point {
   x: number;
   y: number;

@@ -13,6 +13,7 @@ import {
   isNumber,
   quadraticBezierCurve,
   midPoint,
+  Str2Cues,
 } from "./helper";
 
 const UPDATE_POPPER_WAIT = 100;
@@ -429,6 +430,9 @@ function updateCueOptions(opts: CueOptions, o2) {
   }
 }
 
+/**
+ * @param  {CueOptions} cueOptions
+ */
 export function addCue(cueOptions: CueOptions) {
   const eles = this;
   const cy = this.cy();
@@ -509,6 +513,9 @@ export function addCue(cueOptions: CueOptions) {
   }
 }
 
+/**
+ * @param  {string|number} cueId
+ */
 export function removeCue(cueId: string | number) {
   const eles = this;
   for (let i = 0; i < eles.length; i++) {
@@ -530,6 +537,9 @@ export function removeCue(cueId: string | number) {
   }
 }
 
+/**
+ * @param  {CueOptions} cueOptions
+ */
 export function updateCue(cueOptions: CueOptions) {
   const eles = this;
   const cueId = cueOptions.id;
@@ -554,9 +564,12 @@ export function updateCue(cueOptions: CueOptions) {
   }
 }
 
-export function getCueData() {
+/**
+ * @returns Str2Cues
+ */
+export function getCueData(): Str2Cues {
   const eles = this;
-  let r = {};
+  let r: Str2Cues = {};
   for (let i = 0; i < eles.length; i++) {
     const id = eles[i].id();
     if (allCues[id]) {
