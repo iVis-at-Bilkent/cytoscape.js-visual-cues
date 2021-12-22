@@ -4,7 +4,6 @@ import {
   Cues,
   debounce2,
   EdgeCuePosition,
-  Events2show,
   isNullish,
   NodeCuePosition,
   Point,
@@ -453,18 +452,38 @@ function updateCueOptions(opts: CueOptions, o2) {
   }
 }
 
+function isCueIdExists(e, opts: CueOptions) {
+  if (!isNullish(opts.id) && opts.id != "") {
+    const id = e.id();
+    if (allCues[id] && allCues[id].cues[opts.id]) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /**
  * @param  {CueOptions} cueOptions
+ * @returns boolean
  */
-export function addCue(cueOptions: CueOptions) {
+export function addCue(cueOptions: CueOptions): boolean[] {
   const eles = this;
   const cy = this.cy();
   const container = cy.container();
   fillEmptyOptions(cueOptions);
+  const results: boolean[] = [];
   for (let i = 0; i < eles.length; i++) {
     const opts = deepCopyOptions(cueOptions);
     const e = eles[i];
+    const id = e.id() + "";
+
     checkCuePosition(e, opts.position);
+    if (isCueIdExists(e, opts)) {
+      console.error(`A cue with id '${opts.id}' already exists for '${id}'`);
+      results.push(false);
+      break;
+    }
+    results.push(true);
     let htmlElem;
     if (opts.imgData) {
       htmlElem = document.createElement("img");
@@ -477,7 +496,6 @@ export function addCue(cueOptions: CueOptions) {
     }
     prepareHTMLElement(container, htmlElem, opts, e);
 
-    const id = e.id() + "";
     let cueOpacities = {};
     let isOnMove = false;
     const positionHandlerFn = debounce2(
@@ -514,10 +532,6 @@ export function addCue(cueOptions: CueOptions) {
           cueId++;
         }
       }
-      if (existingCuesData.cues[cueId]) {
-        console.error(`A cue with id ${cueId} already exists for: ${id}`);
-        return;
-      }
       existingCuesData.cues[cueId] = opts;
     } else {
       addEventListeners4Elem(e, cy, positionHandlerFn, styleHandlerFn);
@@ -536,6 +550,7 @@ export function addCue(cueOptions: CueOptions) {
     }
     onElemMove(e, cueOpacities, false);
   }
+  return results;
 }
 
 /**
@@ -554,7 +569,7 @@ export function removeCue(cueId: string | number) {
           destroyCuesOfGraphElem({ target: e });
         }
       } else {
-        console.warn("Can not found a cue with id: ", cueId);
+        console.warn(`Can not found a cue with id '${cueId}'`);
       }
     } else {
       destroyCuesOfGraphElem({ target: e });

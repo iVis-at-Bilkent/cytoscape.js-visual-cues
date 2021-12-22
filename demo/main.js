@@ -260,7 +260,10 @@ function onLoaded() {
       options.imgData = { width: 16, height: 16, src: "assets/add.svg" };
     }
 
-    cy.$(":selected").addCue(options);
+    const results = cy.$(":selected").addCue(options);
+    if (results.filter((x) => !x).length > 0) {
+      toastList[1].show();
+    }
   });
 
   document.getElementById("updateCue").addEventListener("click", () => {

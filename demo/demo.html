@@ -40,7 +40,7 @@
   <input id="sif-file-inp" type="file" onchange="sifFileSelected()" accept="text/*, .json, .sif"
     style="display: none;" />
   <div class="root">
-    <div class="z10 toast-container position-absolute top-0 end-0 p-3" id="toastPlacement">
+    <div class="z10 toast-container position-absolute top-0 end-0 p-3">
       <div class="toast">
         <div class="toast-header">
           <strong class="me-auto">Warning!</strong>
@@ -48,6 +48,17 @@
         </div>
         <div class="toast-body">
           There is not any selected graph element!
+        </div>
+      </div>
+    </div>
+    <div class="z10 toast-container position-absolute top-0 end-0 p-3">
+      <div class="toast">
+        <div class="toast-header">
+          <strong class="me-auto">Warning!</strong>
+          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+          Cannot add cue with the same id!
         </div>
       </div>
     </div>
