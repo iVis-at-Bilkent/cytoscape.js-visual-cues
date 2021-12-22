@@ -475,13 +475,19 @@ export function addCue(cueOptions: CueOptions) {
     const positionHandlerFn = debounce2(
       () => {
         isOnMove = false;
-        onElemMove(e, cueOpacities, true);
-        setCueVisibility(e, allCues[id].cues, "position");
+        // element might be removed before addCue is finished
+        if (allCues[id]) {
+          onElemMove(e, cueOpacities, true);
+          setCueVisibility(e, allCues[id].cues, "position");
+        }
       },
       UPDATE_POPPER_WAIT,
       () => {
         isOnMove = true;
-        switchCueOpacities(allCues[id].cues, cueOpacities, true);
+        // element might be removed before addCue is finished
+        if (allCues[id]) {
+          switchCueOpacities(allCues[id].cues, cueOpacities, true);
+        }
       }
     );
 
