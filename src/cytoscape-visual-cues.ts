@@ -14,6 +14,7 @@ import {
   quadraticBezierCurve,
   midPoint,
   Str2Cues,
+  CyEvent,
 } from "./helper";
 
 const UPDATE_POPPER_WAIT = 100;
@@ -298,7 +299,7 @@ function setCueCoords(cueData: CueData, cyZoom: number, cueId?) {
   }
 }
 
-function switchCueOpacities(cues: Cues, prevOpacities: any, isHide: boolean) {
+function switchCueVisibility(cues: Cues, prevOpacities: any, isHide: boolean) {
   for (let id in cues) {
     if (isHide) {
       prevOpacities[id] = cues[id].htmlElem.style.visibility;
@@ -324,7 +325,14 @@ function setCueCoordsOfChildren(e, zoom: number) {
   }
 }
 
-function setCueVisibility(e, cues: Cues, eventType: Events2show, cueId?) {
+function setCueVisibility(event: CyEvent, cueId?) {
+  const e = event.target;
+  const targetId = e.id();
+  if (!allCues[targetId]) {
+    return;
+  }
+  const cues: Cues = allCues[targetId].cues;
+  const eventType = event.type;
   const isElemSelected = e.selected();
   if (!e.visible()) {
     for (let id in cues) {
@@ -391,7 +399,7 @@ function onElemMove(e, cueOpacities, isSwapOpacity: boolean) {
   setCueCoords(allCues[id], zoom);
   setCueCoordsOfChildren(e, zoom);
   if (isSwapOpacity) {
-    switchCueOpacities(allCues[id].cues, cueOpacities, false);
+    switchCueVisibility(allCues[id].cues, cueOpacities, false);
   }
 }
 
@@ -478,7 +486,7 @@ export function addCue(cueOptions: CueOptions) {
         // element might be removed before addCue is finished
         if (allCues[id]) {
           onElemMove(e, cueOpacities, true);
-          setCueVisibility(e, allCues[id].cues, "position");
+          setCueVisibility({ target: e, type: "position" });
         }
       },
       UPDATE_POPPER_WAIT,
@@ -486,24 +494,14 @@ export function addCue(cueOptions: CueOptions) {
         isOnMove = true;
         // element might be removed before addCue is finished
         if (allCues[id]) {
-          switchCueOpacities(allCues[id].cues, cueOpacities, true);
+          switchCueVisibility(allCues[id].cues, cueOpacities, true);
         }
       }
     );
 
     const styleHandlerFn = (event, cueId = undefined) => {
       if (!isOnMove) {
-        const target = event.target;
-        const targetId = target.id();
-        if (allCues[targetId]) {
-          if (cueId) {
-            const c: Cues = {};
-            c[cueId] = allCues[targetId].cues[cueId];
-            setCueVisibility(target, c, event.type);
-          } else {
-            setCueVisibility(target, allCues[targetId].cues, event.type);
-          }
-        }
+        setCueVisibility(event, cueId);
       }
     };
 
@@ -587,7 +585,7 @@ export function updateCue(cueOptions: CueOptions) {
       }
     }
     setCueCoords(allCues[id], cy.zoom(), cueId);
-    setCueVisibility(e, allCues[id].cues, "style", cueId);
+    setCueVisibility({ target: e, type: "style" }, cueId);
   }
 }
 

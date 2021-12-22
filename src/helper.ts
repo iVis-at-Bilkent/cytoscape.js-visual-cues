@@ -34,6 +34,11 @@ export interface CueOptions {
   tooltip: string;
 }
 
+export interface CyEvent {
+  target: any;
+  type: string;
+}
+
 export interface Cues {
   [key: string]: CueOptions;
 }
