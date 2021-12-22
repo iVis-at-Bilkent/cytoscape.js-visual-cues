@@ -571,7 +571,6 @@ export function updateCue(cueOptions: CueOptions) {
   const eles = this;
   const cy = this.cy();
   const cueId = cueOptions.id;
-  fillEmptyOptions(cueOptions);
   for (let i = 0; i < eles.length; i++) {
     const opts = cueOptions;
     const e = eles[i];
