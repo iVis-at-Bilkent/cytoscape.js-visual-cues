@@ -324,6 +324,16 @@ function setCueCoordsOfChildren(e, zoom: number) {
   }
 }
 
+function hideAllHoverCues() {
+  for (let id in allCues) {
+    for (let cueId in allCues[id].cues) {
+      if (allCues[id].cues[cueId].show == "hover") {
+        allCues[id].cues[cueId].htmlElem.style.visibility = "hidden";
+      }
+    }
+  }
+}
+
 function setCueVisibility(event: CyEvent, cueId?) {
   const e = event.target;
   const targetId = e.id();
@@ -339,6 +349,9 @@ function setCueVisibility(event: CyEvent, cueId?) {
     }
   } else {
     const zoom = e.cy().zoom();
+    if (eventType == "mouseover") {
+      hideAllHoverCues();
+    }
     for (let id in cues) {
       if (cueId) {
         id = cueId;
@@ -348,7 +361,9 @@ function setCueVisibility(event: CyEvent, cueId?) {
         cues[id].htmlElem.style.visibility = "hidden";
       } else if (showType == "always") {
         cues[id].htmlElem.style.visibility = "visible";
-      } else if (showType == "hover") {
+      } else if (showType == "hover" && eventType == "mouseover") {
+        cues[id].htmlElem.style.visibility = "visible";
+      } else if (showType == "over") {
         if (eventType == "mouseout") {
           cues[id].htmlElem.style.visibility = "hidden";
         } else if (eventType == "mouseover") {
@@ -462,7 +477,30 @@ function isCueIdExists(e, opts: CueOptions) {
   return false;
 }
 
-/**
+function showHideCues(eles, cueId: string | number, isShow: boolean) {
+  let vis = "hidden";
+  if (isShow) {
+    vis = "visible";
+  }
+  for (let i = 0; i < eles.length; i++) {
+    const e = eles[i];
+    if (cueId !== undefined && cueId != null) {
+      const cue = allCues[e.id()].cues[cueId];
+      if (cue) {
+        cue.htmlElem.style.visibility = vis;
+      } else {
+        console.error("Can not found a cue with id: ", cueId);
+      }
+    } else {
+      const cues = allCues[e.id()].cues;
+      for (let id in cues) {
+        cues[id].htmlElem.style.visibility = vis;
+      }
+    }
+  }
+}
+
+/** creates new cue(s) to the calling element(s)
  * @param  {CueOptions} cueOptions
  * @returns boolean
  */
@@ -553,7 +591,7 @@ export function addCue(cueOptions: CueOptions): boolean[] {
   return results;
 }
 
-/**
+/** deletes cue(s) from the calling element(s)
  * @param  {string|number} cueId
  */
 export function removeCue(cueId: string | number) {
@@ -577,7 +615,7 @@ export function removeCue(cueId: string | number) {
   }
 }
 
-/**
+/** updates given properties of cue(s)
  * @param  {CueOptions} cueOptions
  */
 export function updateCue(cueOptions: CueOptions) {
@@ -604,7 +642,7 @@ export function updateCue(cueOptions: CueOptions) {
   }
 }
 
-/**
+/** gets cue data of cue(s)
  * @returns Str2Cues
  */
 export function getCueData(): Str2Cues {
@@ -618,4 +656,20 @@ export function getCueData(): Str2Cues {
   }
 
   return r;
+}
+
+/** Manually hides cue(s).
+ * @param  {string|number} cueId
+ */
+export function hideCue(cueId: string | number) {
+  const eles = this;
+  showHideCues(eles, cueId, false);
+}
+
+/** Manually show cue(s).
+ * @param  {string|number} cueId
+ */
+export function showCue(cueId: string | number) {
+  const eles = this;
+  showHideCues(eles, cueId, true);
 }

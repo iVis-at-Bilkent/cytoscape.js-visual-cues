@@ -21,7 +21,7 @@ export type Events2show =
 
 export interface CueOptions {
   id: number | string;
-  show: "select" | "hover" | "always" | "never";
+  show: "select" | "hover" | "always" | "never" | "over";
   position: NodeCuePosition | EdgeCuePosition;
   marginX: string | number;
   marginY: string | number;

@@ -298,6 +298,32 @@ function onLoaded() {
     }
   });
 
+  document.getElementById("showCue").addEventListener("click", () => {
+    if (!haveAnySelected()) {
+      toastList[0].show();
+      return;
+    }
+    const id = document.getElementById("cueId").value;
+    if (id) {
+      cy.$(":selected").showCue(id);
+    } else {
+      cy.$(":selected").showCue();
+    }
+  });
+
+  document.getElementById("hideCue").addEventListener("click", () => {
+    if (!haveAnySelected()) {
+      toastList[0].show();
+      return;
+    }
+    const id = document.getElementById("cueId").value;
+    if (id) {
+      cy.$(":selected").hideCue(id);
+    } else {
+      cy.$(":selected").hideCue();
+    }
+  });
+
   document.getElementById("getCueData").addEventListener("click", () => {
     if (!haveAnySelected()) {
       toastList[0].show();

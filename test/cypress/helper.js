@@ -8,3 +8,5 @@ export function open() {
     },
   });
 }
+
+export const cueSelector = "span.badge.rounded-pill.bg-primary";
