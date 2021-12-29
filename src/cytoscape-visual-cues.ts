@@ -62,12 +62,7 @@ function deepCopyOptions(o: CueOptions): CueOptions {
     zIndex: o.zIndex,
     tooltip: o.tooltip,
   };
-  if (isNumber(o2.marginX)) {
-    o2.marginX = Number(o2.marginX);
-  }
-  if (isNumber(o2.marginY)) {
-    o2.marginY = Number(o2.marginY);
-  }
+  setMarginIfNeeded(o2);
   if (o.imgData) {
     o2.imgData = {
       src: o.imgData.src,
@@ -76,6 +71,15 @@ function deepCopyOptions(o: CueOptions): CueOptions {
     };
   }
   return o2;
+}
+
+function setMarginIfNeeded(c: CueOptions) {
+  if (isNumber(c.marginX)) {
+    c.marginX = Number(c.marginX);
+  }
+  if (isNumber(c.marginY)) {
+    c.marginY = Number(c.marginY);
+  }
 }
 
 function getCuePositionOnEdge(edge, cuePos: EdgeCuePosition): Point | void {
@@ -456,13 +460,17 @@ function prepareHTMLElement(container, htmlElem, opts: CueOptions, e) {
   htmlElem.addEventListener("touchend", stopEvent);
 }
 
-function updateCueOptions(opts: CueOptions, o2) {
+function updateCueOptions(opts: CueOptions, o2: CueOptions) {
   for (let k in o2) {
     if (k == "htmlElem" || k == "imgData") {
       throw `'htmlElem' and 'imgData' cannot be updated! Please try removing whole cue and then adding it again`;
     }
-    if (k in o2) {
-      opts[k] = o2[k];
+    opts[k] = o2[k];
+    if (k == "tooltip") {
+      opts.htmlElem.title = o2[k];
+    }
+    if (k == "zIndex") {
+      opts.htmlElem.style.zIndex = o2[k] + "";
     }
   }
 }
@@ -622,6 +630,7 @@ export function updateCue(cueOptions: CueOptions) {
   const eles = this;
   const cy = this.cy();
   const cueId = cueOptions.id;
+  setMarginIfNeeded(cueOptions);
   for (let i = 0; i < eles.length; i++) {
     const opts = cueOptions;
     const e = eles[i];

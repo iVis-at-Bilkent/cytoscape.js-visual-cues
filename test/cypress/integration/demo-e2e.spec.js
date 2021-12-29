@@ -197,4 +197,39 @@ context("Test demo.html file", () => {
     cy.get("button#showCue").click();
     cy.get(cueSelector).contains("123").should("be.visible");
   });
+
+  it("Can update margins, z-index and, tooltip", () => {
+    cy.window().then((win) => {
+      win.cy.$("#n20").select();
+    });
+
+    // add cue
+    cy.get("input#cueId").type("newCue");
+    cy.get("input#htmlElem").type("123");
+    cy.get("button#addCue").click();
+
+    let cueY1 = null;
+    cy.get(cueSelector)
+      .contains("123")
+      .then((el) => {
+        cueY1 = el[0].getBoundingClientRect().y;
+      });
+
+    // update cue margins
+    cy.get("input#marginX").type("100");
+    cy.get("input#marginY").type("100");
+    cy.get("input#tooltip").type("ankara");
+    cy.get("input#zIndex").type("11");
+    cy.get("button#updateCue").click();
+
+    cy.get('div[title="ankara"]')
+      .contains("123")
+      .then((el) => {
+        const cueY2 = el[0].getBoundingClientRect().y;
+        expect(cueY1).to.not.equal(cueY2);
+        expect(cueY1).to.be.lt(cueY2);
+      });
+
+    cy.get('div[title="ankara"]').should("have.css", "z-index", "11");
+  });
 });

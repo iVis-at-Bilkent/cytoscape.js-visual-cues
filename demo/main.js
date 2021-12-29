@@ -233,17 +233,7 @@ function onLoaded() {
       toastList[0].show();
       return;
     }
-    let options = {
-      id: document.getElementById("cueId").value,
-      show: document.getElementById("showOpt").value,
-      position: document.getElementById("posOpt").value,
-      marginX: document.getElementById("marginX").value,
-      marginY: document.getElementById("marginY").value,
-      zoom2hide: document.getElementById("zoom2hide").value,
-      isFixedSize: document.getElementById("isFixedSize").checked,
-      zIndex: document.getElementById("zIndex").checked,
-      tooltip: document.getElementById("tooltip").value,
-    };
+    let options = getCueOptions();
     const htmlElem = document.getElementById("htmlElem").value;
     if (htmlElem && htmlElem.length > 0) {
       const div = document.createElement("div");
@@ -271,17 +261,7 @@ function onLoaded() {
       toastList[0].show();
       return;
     }
-    let options = {
-      id: document.getElementById("cueId").value,
-      show: document.getElementById("showOpt").value,
-      position: document.getElementById("posOpt").value,
-      marginX: document.getElementById("marginX").value,
-      marginY: document.getElementById("marginY").value,
-      zoom2hide: document.getElementById("zoom2hide").value,
-      isFixedSize: document.getElementById("isFixedSize").checked,
-      zIndex: document.getElementById("zIndex").checked,
-      tooltip: document.getElementById("tooltip").value,
-    };
+    let options = getCueOptions();
     cy.$(":selected").updateCue(options);
   });
 
@@ -339,6 +319,20 @@ function onLoaded() {
     document.getElementById("cueData").innerHTML = "";
     document.getElementById("cueDataContainer").style.display = "none";
   });
+
+  function getCueOptions() {
+    return {
+      id: document.getElementById("cueId").value,
+      show: document.getElementById("showOpt").value,
+      position: document.getElementById("posOpt").value,
+      marginX: document.getElementById("marginX").value,
+      marginY: document.getElementById("marginY").value,
+      zoom2hide: document.getElementById("zoom2hide").value,
+      isFixedSize: document.getElementById("isFixedSize").checked,
+      zIndex: document.getElementById("zIndex").value,
+      tooltip: document.getElementById("tooltip").value,
+    };
+  }
 
   function buildCue4Elem(e, badge) {
     const div = document.createElement("div");
