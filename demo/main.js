@@ -210,10 +210,10 @@ function onLoaded() {
       toastList[0].show();
       return;
     }
-    cy.$(":selected").css("visibility", "hidden");
+    cy.$(":selected").css("display", "none");
     const hiddenNodes = cy.nodes(":hidden");
     for (let i = 0; i < hiddenNodes.length; i++) {
-      hiddenNodes[i].connectedEdges().css("visibility", "hidden");
+      hiddenNodes[i].connectedEdges().css("display", "none");
     }
     if (hiddenNodes.length > 0) {
       runLayoutThenUpdateCues();
@@ -222,7 +222,7 @@ function onLoaded() {
 
   document.getElementById("showAllHidden").addEventListener("click", () => {
     const hiddenCount = cy.$(":hidden").length;
-    cy.$(":hidden").css("visibility", "visible");
+    cy.$(":hidden").css("display", "element");
     if (hiddenCount > 0) {
       runLayoutThenUpdateCues();
     }
@@ -428,10 +428,10 @@ function onLoaded() {
   function hideSomeNodes() {
     const nodeIds = ["n2", "n7", "n16", "n5", "n12"];
     for (const id of nodeIds) {
-      cy.nodes("#" + id).css("visibility", "hidden");
+      cy.nodes("#" + id).css("display", "none");
       cy.nodes("#" + id)
         .connectedEdges()
-        .css("visibility", "hidden");
+        .css("display", "none");
     }
   }
 
@@ -441,8 +441,8 @@ function onLoaded() {
       return;
     }
     // layoutUtils.placeNewNodes(edges.connectedNodes(":hidden"));
-    edges.css("visibility", "visible");
-    edges.connectedNodes().css("visibility", "visible");
+    edges.css("display", "element");
+    edges.connectedNodes().css("display", "element");
     runLayoutThenUpdateCues();
   }
 
@@ -463,10 +463,10 @@ function onLoaded() {
       return;
     }
     // layoutUtils.placeNewNodes(edges.connectedNodes(":hidden"));
-    edges.css("visibility", "hidden");
+    edges.css("display", "none");
     const nodes2hide = edges.connectedNodes().not(e);
-    nodes2hide.css("visibility", "hidden");
-    nodes2hide.connectedEdges().css("visibility", "hidden");
+    nodes2hide.css("display", "none");
+    nodes2hide.connectedEdges().css("display", "none");
     runLayoutThenUpdateCues();
   }
 
@@ -475,7 +475,7 @@ function onLoaded() {
       return;
     }
     // layoutUtils.placeNewNodes(e.neighborhood(":hidden"));
-    e.neighborhood().css("visibility", "visible");
+    e.neighborhood().css("display", "element");
     runLayoutThenUpdateCues();
   }
 
@@ -484,10 +484,10 @@ function onLoaded() {
     if (edges.length < 1) {
       return;
     }
-    edges.css("visibility", "hidden");
+    edges.css("display", "none");
     const nodes2hide = edges.connectedNodes().not(e);
-    nodes2hide.css("visibility", "hidden");
-    nodes2hide.connectedEdges().css("visibility", "hidden");
+    nodes2hide.css("display", "none");
+    nodes2hide.connectedEdges().css("display", "none");
     runLayoutThenUpdateCues();
   }
 
