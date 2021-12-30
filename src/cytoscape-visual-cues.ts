@@ -492,15 +492,19 @@ function showHideCues(eles, cueId: string | number, isShow: boolean) {
   }
   for (let i = 0; i < eles.length; i++) {
     const e = eles[i];
+    const eId = e.id();
+    if (!allCues[eId]) {
+      continue;
+    }
     if (cueId !== undefined && cueId != null) {
-      const cue = allCues[e.id()].cues[cueId];
+      const cue = allCues[eId].cues[cueId];
       if (cue) {
         cue.htmlElem.style.visibility = vis;
       } else {
         console.error("Can not found a cue with id: ", cueId);
       }
     } else {
-      const cues = allCues[e.id()].cues;
+      const cues = allCues[eId].cues;
       for (let id in cues) {
         cues[id].htmlElem.style.visibility = vis;
       }
@@ -606,12 +610,16 @@ export function removeCue(cueId: string | number) {
   const eles = this;
   for (let i = 0; i < eles.length; i++) {
     const e = eles[i];
+    const eId = e.id();
+    if (!allCues[eId]) {
+      break;
+    }
     if (!isNullish(cueId)) {
-      const cue = allCues[e.id()].cues[cueId];
+      const cue = allCues[eId].cues[cueId];
       if (cue) {
         cue.htmlElem.remove();
-        delete allCues[e.id()].cues[cueId];
-        if (Object.keys(allCues[e.id()].cues).length < 1) {
+        delete allCues[eId].cues[cueId];
+        if (Object.keys(allCues[eId].cues).length < 1) {
           destroyCuesOfGraphElem({ target: e });
         }
       } else {
@@ -635,6 +643,9 @@ export function updateCue(cueOptions: CueOptions) {
     const opts = cueOptions;
     const e = eles[i];
     const id = e.id();
+    if (!allCues[id]) {
+      continue;
+    }
     const cue = allCues[id].cues[cueId];
     checkCuePosition(e, opts.position);
 
