@@ -7,7 +7,7 @@ import {
   isNullish,
   NodeCuePosition,
   Point,
-  Str2CueData,
+  Str2CuesData,
   pointOnRect,
   isNumber,
   quadraticBezierCurve,
@@ -18,7 +18,8 @@ import {
 
 const UPDATE_POPPER_WAIT = 100;
 const STYLE_EVENTS = "style mouseover mouseout select unselect";
-let allCues: Str2CueData = {};
+let allCues: Str2CuesData = {};
+let instanceId = 1;
 
 function fillEmptyOptions(o: CueOptions) {
   if (!o.show) {
@@ -38,6 +39,9 @@ function fillEmptyOptions(o: CueOptions) {
   }
   if (isNullish(o.tooltip)) {
     o.tooltip = "";
+  }
+  if (isNullish(o.cursor)) {
+    o.cursor = "initial";
   }
 }
 
@@ -61,6 +65,7 @@ function deepCopyOptions(o: CueOptions): CueOptions {
     isFixedSize: o.isFixedSize,
     zIndex: o.zIndex,
     tooltip: o.tooltip,
+    cursor: o.cursor,
   };
   setMarginIfNeeded(o2);
   if (o.imgData) {
@@ -320,7 +325,7 @@ function setCueCoordsOfChildren(e, zoom: number) {
     if (child.isParent()) {
       setCueCoordsOfChildren(child, zoom);
     } else {
-      const d = allCues[child.id()];
+      const d = allCues[instanceId][child.id()];
       if (d) {
         setCueCoords(d, zoom);
       }
@@ -329,10 +334,11 @@ function setCueCoordsOfChildren(e, zoom: number) {
 }
 
 function hideAllHoverCues() {
-  for (let id in allCues) {
-    for (let cueId in allCues[id].cues) {
-      if (allCues[id].cues[cueId].show == "hover") {
-        allCues[id].cues[cueId].htmlElem.style.visibility = "hidden";
+  for (let id in allCues[instanceId]) {
+    for (let cueId in allCues[instanceId][id].cues) {
+      if (allCues[instanceId][id].cues[cueId].show == "hover") {
+        allCues[instanceId][id].cues[cueId].htmlElem.style.visibility =
+          "hidden";
       }
     }
   }
@@ -341,10 +347,10 @@ function hideAllHoverCues() {
 function setCueVisibility(event: CyEvent, cueId?) {
   const e = event.target;
   const targetId = e.id();
-  if (!allCues[targetId]) {
+  if (!allCues[instanceId] || !allCues[instanceId][targetId]) {
     return;
   }
-  const cues: Cues = allCues[targetId].cues;
+  const cues: Cues = allCues[instanceId][targetId].cues;
   const eventType = event.type;
   const isElemSelected = e.selected();
   if (!e.visible()) {
@@ -390,34 +396,44 @@ function setCueVisibility(event: CyEvent, cueId?) {
 function destroyCuesOfGraphElem(e: { target: any }) {
   const id = e.target.id();
   // remove cues from DOM
-  if (!allCues[id]) {
+  if (!allCues[instanceId][id]) {
     return;
   }
-  const cues = allCues[id].cues;
+  const cues = allCues[instanceId][id].cues;
   for (let cueId in cues) {
     cues[cueId].htmlElem.remove();
   }
   // unbind previously bound functions
-  if (allCues[id].positionFn) {
-    if (allCues[id].graphElem.isEdge()) {
-      allCues[id].graphElem.source().off("position", allCues[id].positionFn);
-      allCues[id].graphElem.target().off("position", allCues[id].positionFn);
+  if (allCues[instanceId][id].positionFn) {
+    if (allCues[instanceId][id].graphElem.isEdge()) {
+      allCues[instanceId][id].graphElem
+        .source()
+        .off("position", allCues[instanceId][id].positionFn);
+      allCues[instanceId][id].graphElem
+        .target()
+        .off("position", allCues[instanceId][id].positionFn);
     } else {
-      allCues[id].graphElem.off("position", allCues[id].positionFn);
+      allCues[instanceId][id].graphElem.off(
+        "position",
+        allCues[instanceId][id].positionFn
+      );
     }
-    allCues[id].graphElem.off(STYLE_EVENTS, allCues[id].styleFn);
-    e.target.cy().off("pan zoom resize", allCues[id].positionFn);
+    allCues[instanceId][id].graphElem.off(
+      STYLE_EVENTS,
+      allCues[instanceId][id].styleFn
+    );
+    e.target.cy().off("pan zoom resize", allCues[instanceId][id].positionFn);
   }
-  delete allCues[id];
+  delete allCues[instanceId][id];
 }
 
 function onElemMove(e, cueOpacities, isSwapOpacity: boolean) {
   const zoom = e.cy().zoom();
   const id = e.id();
-  setCueCoords(allCues[id], zoom);
+  setCueCoords(allCues[instanceId][id], zoom);
   setCueCoordsOfChildren(e, zoom);
   if (isSwapOpacity) {
-    switchCueVisibility(allCues[id].cues, cueOpacities, false);
+    switchCueVisibility(allCues[instanceId][id].cues, cueOpacities, false);
   }
 }
 
@@ -445,6 +461,7 @@ function prepareHTMLElement(container, htmlElem, opts: CueOptions, e) {
   htmlElem.style.left = "0px";
   htmlElem.style.zIndex = opts.zIndex;
   htmlElem.title = opts.tooltip;
+  htmlElem.style.cursor = opts.cursor;
   if (opts.show != "always") {
     htmlElem.style.visibility = "hidden";
   }
@@ -472,13 +489,16 @@ function updateCueOptions(opts: CueOptions, o2: CueOptions) {
     if (k == "zIndex") {
       opts.htmlElem.style.zIndex = o2[k] + "";
     }
+    if (k == "cursor") {
+      opts.htmlElem.style.cursor = o2[k] + "";
+    }
   }
 }
 
 function isCueIdExists(e, opts: CueOptions) {
   if (!isNullish(opts.id) && opts.id != "") {
     const id = e.id();
-    if (allCues[id] && allCues[id].cues[opts.id]) {
+    if (allCues[instanceId][id] && allCues[instanceId][id].cues[opts.id]) {
       return true;
     }
   }
@@ -493,22 +513,28 @@ function showHideCues(eles, cueId: string | number, isShow: boolean) {
   for (let i = 0; i < eles.length; i++) {
     const e = eles[i];
     const eId = e.id();
-    if (!allCues[eId]) {
+    if (!allCues[instanceId][eId]) {
       continue;
     }
     if (cueId !== undefined && cueId != null) {
-      const cue = allCues[eId].cues[cueId];
+      const cue = allCues[instanceId][eId].cues[cueId];
       if (cue) {
         cue.htmlElem.style.visibility = vis;
       } else {
         console.error("Can not found a cue with id: ", cueId);
       }
     } else {
-      const cues = allCues[eId].cues;
+      const cues = allCues[instanceId][eId].cues;
       for (let id in cues) {
         cues[id].htmlElem.style.visibility = vis;
       }
     }
+  }
+}
+
+function createInstaceIfNeeded() {
+  if (!allCues[instanceId]) {
+    allCues[instanceId] = {};
   }
 }
 
@@ -517,6 +543,7 @@ function showHideCues(eles, cueId: string | number, isShow: boolean) {
  * @returns boolean
  */
 export function addCue(cueOptions: CueOptions): boolean[] {
+  createInstaceIfNeeded();
   const eles = this;
   const cy = this.cy();
   const container = cy.container();
@@ -552,7 +579,7 @@ export function addCue(cueOptions: CueOptions): boolean[] {
       () => {
         isOnMove = false;
         // element might be removed before addCue is finished
-        if (allCues[id]) {
+        if (allCues[instanceId] && allCues[instanceId][id]) {
           onElemMove(e, cueOpacities, true);
           setCueVisibility({ target: e, type: "position" });
         }
@@ -561,8 +588,8 @@ export function addCue(cueOptions: CueOptions): boolean[] {
       () => {
         isOnMove = true;
         // element might be removed before addCue is finished
-        if (allCues[id]) {
-          switchCueVisibility(allCues[id].cues, cueOpacities, true);
+        if (allCues[instanceId] && allCues[instanceId][id]) {
+          switchCueVisibility(allCues[instanceId][id].cues, cueOpacities, true);
         }
       }
     );
@@ -573,7 +600,7 @@ export function addCue(cueOptions: CueOptions): boolean[] {
       }
     };
 
-    const existingCuesData = allCues[id];
+    const existingCuesData = allCues[instanceId][id];
     if (existingCuesData) {
       let cueId = opts.id;
       if (isNullish(cueId) || cueId == "") {
@@ -591,7 +618,8 @@ export function addCue(cueOptions: CueOptions): boolean[] {
       }
       let cues: Cues = {};
       cues[cueId] = opts;
-      allCues[id] = {
+
+      allCues[instanceId][id] = {
         cues: cues,
         graphElem: e,
         positionFn: positionHandlerFn,
@@ -607,19 +635,20 @@ export function addCue(cueOptions: CueOptions): boolean[] {
  * @param  {string|number} cueId
  */
 export function removeCue(cueId: string | number) {
+  createInstaceIfNeeded();
   const eles = this;
   for (let i = 0; i < eles.length; i++) {
     const e = eles[i];
     const eId = e.id();
-    if (!allCues[eId]) {
+    if (!allCues[instanceId][eId]) {
       break;
     }
     if (!isNullish(cueId)) {
-      const cue = allCues[eId].cues[cueId];
+      const cue = allCues[instanceId][eId].cues[cueId];
       if (cue) {
         cue.htmlElem.remove();
-        delete allCues[eId].cues[cueId];
-        if (Object.keys(allCues[eId].cues).length < 1) {
+        delete allCues[instanceId][eId].cues[cueId];
+        if (Object.keys(allCues[instanceId][eId].cues).length < 1) {
           destroyCuesOfGraphElem({ target: e });
         }
       } else {
@@ -635,6 +664,7 @@ export function removeCue(cueId: string | number) {
  * @param  {CueOptions} cueOptions
  */
 export function updateCue(cueOptions: CueOptions) {
+  createInstaceIfNeeded();
   const eles = this;
   const cy = this.cy();
   const cueId = cueOptions.id;
@@ -643,21 +673,21 @@ export function updateCue(cueOptions: CueOptions) {
     const opts = cueOptions;
     const e = eles[i];
     const id = e.id();
-    if (!allCues[id]) {
+    if (!allCues[instanceId][id]) {
       continue;
     }
-    const cue = allCues[id].cues[cueId];
+    const cue = allCues[instanceId][id].cues[cueId];
     checkCuePosition(e, opts.position);
 
     if (cue) {
-      updateCueOptions(allCues[id].cues[cueId], cueOptions);
+      updateCueOptions(allCues[instanceId][id].cues[cueId], cueOptions);
     } else {
-      const cues = allCues[id].cues;
+      const cues = allCues[instanceId][id].cues;
       for (let k in cues) {
-        updateCueOptions(allCues[id].cues[k], cueOptions);
+        updateCueOptions(allCues[instanceId][id].cues[k], cueOptions);
       }
     }
-    setCueCoords(allCues[id], cy.zoom(), cueId);
+    setCueCoords(allCues[instanceId][id], cy.zoom(), cueId);
     setCueVisibility({ target: e, type: "style" }, cueId);
   }
 }
@@ -666,12 +696,13 @@ export function updateCue(cueOptions: CueOptions) {
  * @returns Str2Cues
  */
 export function getCueData(): Str2Cues {
+  createInstaceIfNeeded();
   const eles = this;
   let r: Str2Cues = {};
   for (let i = 0; i < eles.length; i++) {
     const id = eles[i].id();
-    if (allCues[id]) {
-      r[id] = allCues[id].cues;
+    if (allCues[instanceId] && allCues[instanceId][id]) {
+      r[id] = allCues[instanceId][id].cues;
     }
   }
 
@@ -682,6 +713,7 @@ export function getCueData(): Str2Cues {
  * @param  {string|number} cueId
  */
 export function hideCue(cueId: string | number) {
+  createInstaceIfNeeded();
   const eles = this;
   showHideCues(eles, cueId, false);
 }
@@ -690,6 +722,15 @@ export function hideCue(cueId: string | number) {
  * @param  {string|number} cueId
  */
 export function showCue(cueId: string | number) {
+  createInstaceIfNeeded();
   const eles = this;
   showHideCues(eles, cueId, true);
+}
+
+export function setActiveInstance(id: number) {
+  instanceId = id;
+}
+
+export function getActiveInstanceId() {
+  return instanceId;
 }

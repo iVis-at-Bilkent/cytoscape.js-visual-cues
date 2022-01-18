@@ -32,6 +32,7 @@ export interface CueOptions {
   isFixedSize: boolean;
   zIndex: number;
   tooltip: string;
+  cursor: string;
 }
 
 export interface CyEvent {
@@ -48,6 +49,10 @@ export interface CueData {
   graphElem: any;
   positionFn: Function;
   styleFn: Function;
+}
+
+export interface Str2CuesData {
+  [key: string | number]: Str2CueData;
 }
 
 export interface Str2CueData {

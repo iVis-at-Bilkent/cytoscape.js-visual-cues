@@ -529,6 +529,7 @@ function onLoaded() {
           height: IMG_SIZE,
           src: `assets/${cueName}.svg`,
         },
+        cursor: "pointer"
       };
       e.addCue(options4Rect);
     }
