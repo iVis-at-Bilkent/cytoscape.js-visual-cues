@@ -727,6 +727,7 @@ export function showCue(cueId: string | number) {
   showHideCues(eles, cueId, true);
 }
 
+// only need to use if there is more than one cytoscape.js canvas
 export function setActiveInstance(id: number) {
   instanceId = id;
 }

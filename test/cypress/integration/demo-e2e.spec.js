@@ -5,7 +5,7 @@ context("Test demo.html file", () => {
     open();
   });
 
-  it("Add cue and then update cue position and show type", () => {
+  it("Add cue, check cue data, then update cue 'position', 'show', 'marginX', 'marginY' options", () => {
     cy.window().then((win) => {
       win.cy.$("#n20").select();
     });
@@ -78,8 +78,7 @@ context("Test demo.html file", () => {
     cy.get(cueSelector).contains("123").should("be.visible");
   });
 
-  it("Add cue and then update 'zoom to hide'", () => {
-    let zoom = 0;
+  it("Add cue and then update 'zoom2hide' (zoom to hide)", () => {
     cy.window().then((win) => {
       win.cy.$("#n20").select();
     });
@@ -124,7 +123,7 @@ context("Test demo.html file", () => {
     cy.get(cueSelector).contains("123").should("not.exist");
   });
 
-  it("Hiding element will hide the cue, deleting element will remove the cue", () => {
+  it("Hiding element should hide the cue, deleting element should remove the cue", () => {
     cy.window().then((win) => {
       win.cy.$("#n20").select();
     });
@@ -161,7 +160,7 @@ context("Test demo.html file", () => {
     cy.get(cueSelector).contains("123").should("not.exist");
   });
 
-  it("Adding the same cue id should print an error", () => {
+  it("Adding a cue with the same id should print an error", () => {
     cy.window().then((win) => {
       win.cy.$("#n20").select();
     });
@@ -182,7 +181,7 @@ context("Test demo.html file", () => {
     );
   });
 
-  it("Can be able to show/hide cue(s) manually", () => {
+  it("Should be able to show/hide cue(s) manually", () => {
     cy.window().then((win) => {
       win.cy.$("#n20").select();
     });
@@ -198,7 +197,7 @@ context("Test demo.html file", () => {
     cy.get(cueSelector).contains("123").should("be.visible");
   });
 
-  it("Can update margins, z-index and, tooltip", () => {
+  it("Should update margins, z-index and, tooltip", () => {
     cy.window().then((win) => {
       win.cy.$("#n20").select();
     });
@@ -231,5 +230,50 @@ context("Test demo.html file", () => {
       });
 
     cy.get('div[title="ankara"]').should("have.css", "z-index", "11");
+  });
+
+  it("Cues should follow the attached graph element on zoom, pan and position events", () => {
+    cy.window().then((win) => {
+      win.cy.$("#n20").select();
+    });
+    cy.wait(2000);
+
+    cy.get("input#isFixedSize").uncheck();
+    cy.get("input#cueId").type("newCue");
+    cy.get("input#htmlElem").type("123");
+    cy.get("button#addCue").click();
+
+    let cuePos0 = null;
+    cy.get(cueSelector)
+      .contains("123")
+      .then((el) => {
+        cuePos0 = el[0].getBoundingClientRect();
+      });
+
+    cy.wait(100);
+    let elemPos0 = null;
+    cy.window().then((win) => {
+      elemPos0 = win.cy.$("#n20").renderedPosition();
+      win.cy.zoom(0.5);
+    });
+    cy.wait(100);
+
+    let cuePos1 = null;
+    cy.get(cueSelector)
+      .contains("123")
+      .then((el) => {
+        cuePos1 = el[0].getBoundingClientRect();
+      });
+
+    let elemPos1 = null;
+    cy.window().then((win) => {
+      elemPos1 = win.cy.$("#n20").renderedPosition();
+      const deltaX1 = elemPos0.x - cuePos0.x;
+      const deltaY1 = elemPos0.y - cuePos0.y;
+      const deltaX2 = elemPos1.x - cuePos1.x;
+      const deltaY2 = elemPos1.y - cuePos1.y;
+      expect(deltaX1 - deltaX2).to.be.closeTo(0, 50);
+      expect(deltaY1 - deltaY2).to.be.closeTo(0, 50);
+    });
   });
 });
