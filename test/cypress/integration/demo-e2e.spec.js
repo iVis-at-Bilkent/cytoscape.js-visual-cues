@@ -113,9 +113,17 @@ context("Test demo.html file", () => {
     cy.get("input#htmlElem").type("123");
     cy.get("button#addCue").click();
 
+    cy.get("input#cueId").clear();
+    cy.get("input#cueId").type("imgCue");
+    cy.get("select#posOpt").select("right");
+    cy.get("select#imgElem").select("1");
+    cy.get("button#addCue").click();
+
     // 'addCue' should add a new DOM element
     cy.get(cueSelector).contains("123").should("be.visible");
+    cy.get('img[src="assets/edit.svg"]').should("be.visible");
 
+    cy.get("input#cueId").clear();
     cy.get("button#removeCue").click();
     cy.wait(100);
 
