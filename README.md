@@ -6,7 +6,10 @@ A Cytoscape.js extension to show visual cues around nodes or edges. Inserts visu
 
 
 
-https://user-images.githubusercontent.com/8426741/151510675-e26ed61d-49e1-42aa-8131-edb36bae4c2b.mp4
+https://user-images.githubusercontent.com/8426741/151511191-82ee64b9-3709-4cef-ad50-76d26d1867d7.mp4
+
+
+
 
 
 
