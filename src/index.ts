@@ -23,7 +23,7 @@ export default function register(cytoscape) {
   cytoscape("collection", "showCue", showCue);
   cytoscape("collection", "hideCue", hideCue);
   cytoscape("core", "setActiveCueInstance", setActiveInstance);
-  cytoscape("core", "getActiveInstanceId", getActiveInstanceId);
+  cytoscape("core", "getActiveCueInstanceId", getActiveInstanceId);
 }
 
 if (typeof window["cytoscape"] !== "undefined") {

@@ -538,7 +538,8 @@ function createInstaceIfNeeded() {
   }
 }
 
-/** creates new cue(s) to the calling element(s)
+/** creates new cue(s) to the calling element(s).
+ * Returns an array of booleans. If a cue is added successfully to an element it returns true, otherwise false.
  * @param  {CueOptions} cueOptions
  * @returns boolean
  */
@@ -631,7 +632,8 @@ export function addCue(cueOptions: CueOptions): boolean[] {
   return results;
 }
 
-/** deletes cue(s) from the calling element(s)
+/** Deletes cue(s) from the calling element(s).
+ *  If `cueId` is `null` or `undefined`, deletes all the cue(s).
  * @param  {string|number} cueId
  */
 export function removeCue(cueId: string | number) {
@@ -660,7 +662,8 @@ export function removeCue(cueId: string | number) {
   }
 }
 
-/** updates given properties of cue(s)
+/** Updates given properties of cue(s).
+ *  If a cue with the id not found, updates all cues of the element.
  * @param  {CueOptions} cueOptions
  */
 export function updateCue(cueOptions: CueOptions) {
@@ -692,8 +695,8 @@ export function updateCue(cueOptions: CueOptions) {
   }
 }
 
-/** gets cue data of cue(s)
- * @returns Str2Cues
+/** Gets cue data of cue(s).
+ *  @returns Str2Cues
  */
 export function getCueData(): Str2Cues {
   createInstaceIfNeeded();
@@ -710,6 +713,7 @@ export function getCueData(): Str2Cues {
 }
 
 /** Manually hides cue(s).
+ *  If a cue with the id `cueId` is not found, hides all the cues of the element.
  * @param  {string|number} cueId
  */
 export function hideCue(cueId: string | number) {
@@ -718,7 +722,7 @@ export function hideCue(cueId: string | number) {
   showHideCues(eles, cueId, false);
 }
 
-/** Manually show cue(s).
+/** Manually shows cue(s).
  * @param  {string|number} cueId
  */
 export function showCue(cueId: string | number) {
@@ -727,11 +731,16 @@ export function showCue(cueId: string | number) {
   showHideCues(eles, cueId, true);
 }
 
-// only need to use if there is more than one cytoscape.js canvas
+/** If a cue with the id `cueId` is not found, shows all the cues of the element.
+ *  Sets the active cue instance id.
+ * @param  {number} id
+ */
 export function setActiveInstance(id: number) {
   instanceId = id;
 }
 
+/** Gets the active cue instace id.
+ */
 export function getActiveInstanceId() {
   return instanceId;
 }
