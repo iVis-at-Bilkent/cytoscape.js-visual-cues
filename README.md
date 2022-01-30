@@ -2,16 +2,9 @@
 
 ## Description
 
-A Cytoscape.js extension to show visual cues around nodes or edges. Inserts visual cues as HTML elements into the cytoscape container. You should set CSS `overflow: hidden;` for the container element since cues might overflow the cytoscape container. If you will contribute to the extension, please read the [developer guide](dev-guide.md) first.
-
-
+This is a Cytoscape.js extension to show visual cues on or around nodes or edges. The goal is to provide context sensitive operations on nodes or edges via these visual cues. The cues will appear always, on hover or when selected. The user is allowed to customize the position and UI of the cue. It works by inserting visual cues as HTML elements into the Cytoscape container. You should set CSS `overflow: hidden;` for the container element since cues might overflow the Cytoscape container. If you will contribute to the extension, please read the [developer guide](dev-guide.md) first.
 
 https://user-images.githubusercontent.com/8426741/151511191-82ee64b9-3709-4cef-ad50-76d26d1867d7.mp4
-
-
-
-
-
 
 ## Demo
 
