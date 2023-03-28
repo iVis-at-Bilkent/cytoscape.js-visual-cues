@@ -120,6 +120,6 @@ export interface Cues {
 
 After getting a build (use `npm run build` or `npm run build-dev`), you can import the generated files under "dist" folder. It will generate CommonJS, Universal Module Definition and ES bundles.
 
-<div align="center">
-  <sub>Copyright © 2021 - present by Tarchin. All rights reserved.</sub>
-</div>
+## Team
+
+  * [Yusuf Canbaz](https://github.com/canbax), [Hasan Balcı](https://github.com/hasanbalci) and [Ugur Dogrusoz](https://github.com/ugurdogrusoz) of [i-Vis at Bilkent University](http://www.cs.bilkent.edu.tr/~ivis)
