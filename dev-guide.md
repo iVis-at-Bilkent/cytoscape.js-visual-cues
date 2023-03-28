@@ -17,9 +17,3 @@ You can read [demo guide](demo/README.md) for more information about demo.
 `npm run cy`: Opens cypress for running end-to-end tests.
 
 `npm run e2e`: Executes end-to-end tests and outputs results to a file named 'e2e-test-results.txt'
-
----
-
-<div align="center">
-  <sub>Copyright © 2021 - present by Tarchin. All rights reserved.</sub>
-</div>
