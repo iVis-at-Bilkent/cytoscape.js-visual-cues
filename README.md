@@ -8,7 +8,7 @@ https://user-images.githubusercontent.com/8426741/151511191-82ee64b9-3709-4cef-a
 
 ## Demo
 
-1. Download the source codes or clone the repository with `git clone https://github.com/tarchintech/cytoscape.js-visual-cues.git`
+1. Download the source codes or clone the repository with `git clone https://github.com/iVis-at-Bilkent/cytoscape.js-visual-cues.git`
 2. Go to the root folder `cd cytoscape.js-visual-cues`
 3. Run `npm install` to install the dependencies
 4. Run `npm run demo`. By default it will open http://localhost:8080/demo/demo.html
