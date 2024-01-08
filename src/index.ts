@@ -8,6 +8,7 @@ import {
   hideCue,
   setActiveInstance,
   getActiveInstanceId,
+  pngFull,
 } from "./cytoscape-visual-cues";
 
 export default function register(cytoscape) {
@@ -24,6 +25,7 @@ export default function register(cytoscape) {
   cytoscape("collection", "hideCue", hideCue);
   cytoscape("core", "setActiveCueInstance", setActiveInstance);
   cytoscape("core", "getActiveCueInstanceId", getActiveInstanceId);
+  cytoscape("core", "pngFull", pngFull);
 }
 
 if (typeof window["cytoscape"] !== "undefined") {

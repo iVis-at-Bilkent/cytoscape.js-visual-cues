@@ -90,6 +90,45 @@ function exportJson() {
   str2file(JSON.stringify(elements, undefined, 4), 'sample-graph.json');
 }
 
+function exportPng() {
+  const options = { bg: 'white', scale: 3, full: false };
+  let base64png;
+  base64png = cy.pngFull(options);
+  base64png.then((result) => {
+    fetch(result)
+    .then(res => res.blob())
+    .then(x => {
+      const anchor = document.createElement('a');
+      anchor.download = 'sample.png';
+      anchor.href = (window.URL).createObjectURL(x);
+      anchor.click();
+      return x;
+    })
+  }).catch((error) => {
+    console.error(error); // Handle errors
+  });
+}
+
+function exportPngAll() {
+  const options = { bg: 'white', scale: 3, full: true };
+  let base64png;
+  base64png = cy.pngFull(options);
+  base64png.then((result) => {
+    fetch(result)
+    .then(res => res.blob())
+    .then(x => {
+      const anchor = document.createElement('a');
+      anchor.download = 'sample.png';
+      anchor.href = (window.URL).createObjectURL(x);
+      anchor.click();
+      return x;
+    })
+  }).catch((error) => {
+    console.error(error); // Handle errors
+  });
+}
+
+
 function exportGraphml() {
   str2file(cy.graphml(), 'sample-graph.graphml');
 }

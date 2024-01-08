@@ -1,3 +1,4 @@
+import html2canvas from "html2canvas";
 import {
   CueData,
   CueOptions,
@@ -743,4 +744,164 @@ export function setActiveInstance(id: number) {
  */
 export function getActiveInstanceId() {
   return instanceId;
+}
+
+
+async function htmlToDataUrl(htmlElement: HTMLElement): Promise<string> {
+  // Create a Blob from the HTML content
+  const blob = new Blob([htmlElement.outerHTML], { type: 'image/png' });
+
+  // Convert Blob to data URL
+  const dataUrl = await new Promise<string>((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.readAsDataURL(blob);
+  });
+
+  return dataUrl;
+}
+function getComputedStyleAsObject(el: HTMLElement): { [key: string]: string } {
+  const computedStyles = window.getComputedStyle(el);
+  const styles: { [key: string]: string } = {};
+
+  for (let i = 0; i < computedStyles.length; i++) {
+    const key = computedStyles[i];
+    styles[key] = computedStyles.getPropertyValue(key);
+  }
+
+  return styles;
+}
+
+
+async function loadImageAsync(img: HTMLImageElement, src: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = (error) => reject(error);
+    img.src = src;
+  });
+}
+
+export async function pngFull(options: any, ignoreElementClasses: string[] = []) {
+  try {
+    const cy = this;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('Unable to obtain 2D context for canvas.');
+    }
+
+    const graphBoundingBox = cy.elements().renderedBoundingBox();
+    const container = document.getElementById('cy');
+
+    if (!container) {
+      throw new Error('Container element not found.');
+    }
+
+    const base64png: string = cy.png(options);
+    const image = await loadImage(base64png);
+
+    canvas.width = image.width;
+    canvas.height = image.height;
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const elements = cy.elements();
+
+    for (const element of elements) {
+      const cues = element.getCueData();
+
+      for (const cueDic of Object.values(cues) as any[]) {
+        for (const key in cueDic) {
+          if (cueDic.hasOwnProperty(key)) {
+            const cue = cueDic[key];
+            if (cue.htmlElem) {
+              try {
+                const elementHTML = cue.htmlElem as HTMLElement;                
+                let ratio = 1;
+                let z1 = (cy.zoom()/2) * ratio;
+                const dataUrl = await html2canvas(elementHTML, {
+                  scale: options.scale,
+                  ignoreElements: (element) => ignoreElementClasses.some((className) => element.classList.contains(className)),
+                  backgroundColor: 'transparent',
+                });
+                // Create an image element
+                const cueImg = await loadImage(dataUrl.toDataURL());
+                const bb = element.renderedBoundingBox({
+                  includeLabels: false,
+                  includeOverlays: false,
+                });
+                const isEdge = element.isEdge();
+                const w = cue.htmlElem.offsetWidth *z1;
+                const h = cue.htmlElem.offsetHeight *z1;
+                const pos = cue.position;
+
+                // Calculate cue position within the bounding box
+                let cueX = (bb.x2 + bb.x1) / 2 - w / 2;
+                let cueY = (bb.y1 + bb.y2) / 2 - h / 2;
+                if (pos.startsWith('bottom')) {
+                  cueY = bb.y2 - h / 2;
+                } else if (pos.startsWith('top')) {
+                  cueY = bb.y1 - h / 2;
+                }
+
+                if (pos.endsWith('right')) {
+                  cueX = bb.x2 - w / 2;
+                } else if (pos.endsWith('left')) {
+                  cueX = bb.x1 - w / 2;
+                }
+
+                if (isEdge) {
+                  const p = getCuePositionOnEdge(element, pos as EdgeCuePosition);
+                  if (p) {
+                    cueX = p.x - w / 2;
+                    cueY = p.y- h / 2;
+                  }
+                }
+
+                // Adjust cue position based on margins
+                const margins = getMargins(cue, element);
+                cueX +=(margins.x *z1) ;
+                cueY += (margins.y *z1) ;
+                let cueXSource;
+                let cueYSource;
+
+                if (options.full) {
+                  cueXSource = ((cueX - ((graphBoundingBox.x1 + graphBoundingBox.x2) / 2)) * image.width) / graphBoundingBox.w;
+                  cueYSource = ((cueY - ((graphBoundingBox.y1 + graphBoundingBox.y2) / 2)) * image.height) / graphBoundingBox.h;
+                  ctx.drawImage(cueImg, cueXSource + canvas.width / 2, cueYSource + canvas.height / 2, (1/options.scale)*cueImg.width * image.width /graphBoundingBox.w ,(1/options.scale) *cueImg.height *image.height /graphBoundingBox.h);
+                } else {
+                  cueXSource = (cueX * image.width) / container.offsetWidth;
+                  cueYSource = (cueY * image.height) / container.offsetHeight;
+                  ctx.drawImage(cueImg, cueXSource, cueYSource, (1/options.scale)* cueImg.width * image.width / container.offsetWidth, (1/options.scale)*  cueImg.height * image.height /container.offsetHeight );
+                }
+
+              } catch (error) {
+                console.error('Error processing image:', error);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    const combinedBase64 = canvas.toDataURL();
+    return combinedBase64;
+
+  } catch (error) {
+    throw error;
+  }
+}
+
+
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img2 = new Image();
+    img2.src = src;
+    img2.onload = () => resolve(img2);
+    img2.onerror = (error) => {
+      console.error('Error loading image:', error);
+      reject('Error loading image');
+    };
+
+  });
 }
