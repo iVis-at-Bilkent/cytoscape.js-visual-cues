@@ -15,7 +15,7 @@ https://user-images.githubusercontent.com/8426741/151511191-82ee64b9-3709-4cef-a
 
 ## API
 
-Adds `setActiveCueInstance` and `getActiveInstanceId` to the **cytoscape core** methods.
+Adds `setActiveCueInstance` , `getActiveInstanceId`, and `pngFull` to the **cytoscape core** methods.
 
 #### `cy.setActiveCueInstance(id: number)`
 
@@ -25,6 +25,10 @@ Adds `setActiveCueInstance` and `getActiveInstanceId` to the **cytoscape core** 
 #### `cy.getActiveCueInstanceId()`
 
 - Gets the active cue instace id.
+
+#### `cy.pngFull(options: any, ignoreElementClasses: string[]): string`
+
+- Gets a base64 encoded PNG of the graph including the cues.
 
 Adds `addCue`, `removeCue`, `updateCue`, `getCueData`, `showCue`, `hideCue` to the **cytoscape collection** methods.
 
