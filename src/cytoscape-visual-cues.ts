@@ -746,38 +746,16 @@ export function getActiveInstanceId() {
   return instanceId;
 }
 
-
-async function htmlToDataUrl(htmlElement: HTMLElement): Promise<string> {
-  // Create a Blob from the HTML content
-  const blob = new Blob([htmlElement.outerHTML], { type: 'image/png' });
-
-  // Convert Blob to data URL
-  const dataUrl = await new Promise<string>((resolve) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.readAsDataURL(blob);
-  });
-
-  return dataUrl;
-}
-function getComputedStyleAsObject(el: HTMLElement): { [key: string]: string } {
-  const computedStyles = window.getComputedStyle(el);
-  const styles: { [key: string]: string } = {};
-
-  for (let i = 0; i < computedStyles.length; i++) {
-    const key = computedStyles[i];
-    styles[key] = computedStyles.getPropertyValue(key);
-  }
-
-  return styles;
-}
-
-
-async function loadImageAsync(img: HTMLImageElement, src: string): Promise<void> {
+function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
-    img.onload = () => resolve();
-    img.onerror = (error) => reject(error);
-    img.src = src;
+    const img2 = new Image();
+    img2.src = src;
+    img2.onload = () => resolve(img2);
+    img2.onerror = (error) => {
+      console.error('Error loading image:', error);
+      reject('Error loading image');
+    };
+
   });
 }
 
@@ -924,19 +902,4 @@ export async function pngFull(options: any, ignoreElementClasses: string[] = [])
   } catch (error) {
     throw error;
   }
-}
-
-
-
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img2 = new Image();
-    img2.src = src;
-    img2.onload = () => resolve(img2);
-    img2.onerror = (error) => {
-      console.error('Error loading image:', error);
-      reject('Error loading image');
-    };
-
-  });
 }
