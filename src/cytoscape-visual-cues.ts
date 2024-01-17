@@ -758,148 +758,147 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 
   });
 }
+interface PngOptions {
+  output?: 'base64uri' | 'base64' | 'blob' | 'blob-promise';
+  bg?: string;
+  full?: boolean;
+  scale?: number;
+  maxWidth?: number;
+  maxHeight?: number;
+  quality?: number;
+}
 
 /**
  * Gets a PNG of the graph including the cues.
- * @param {any} options - png options.
+ * @param {PngOptions} options - PNG options.
  * @param {string[]} ignoreElementClasses - Array of classes to ignore.
  * @returns combinedBase64 - Base64-encoded PNG of the graph.
  */
-export async function pngFull(options: any, ignoreElementClasses: string[] = []) {
-  try {
-    // Create a canvas and load and draw the PNG image of the graph using the png() function from cytoscape.js core.
-    const cy = this;
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const base64png: string = cy.png(options);
-    const image = await loadImage(base64png);
-    const elements = cy.elements();
-    // Calculate the positions of cues on the container, determine the required positions on the canvas, and then add the cues.
-    const graphBoundingBox = cy.elements().renderedBoundingBox(); //For option full calculate from graphBoundingBox
-    const container = document.getElementById('cy'); //For option !full  calculate from container
-    if (!container) {
-      throw new Error('Container element not found.');
-    }
-    let z1 = (cy.zoom() / 2);
-    let overflow = 0;
-    let cuePositions: { cueX: number; cueY: number }[] = [];
-    for (const element of elements) {
-      const cues = element.getCueData();
-      for (const cueDic of Object.values(cues) as any[]) {
-        for (const key in cueDic) {
-          if (cueDic.hasOwnProperty(key)) {
-            const cue = cueDic[key];
-            if (cue.htmlElem) {
-              const bb = element.renderedBoundingBox({
-                includeLabels: false,
-                includeOverlays: false,
-              });
-              // Calculate cue position within the bounding box with the zoom information
-              const isEdge = element.isEdge();
-              const w = cue.htmlElem.offsetWidth * z1;
-              const h = cue.htmlElem.offsetHeight * z1;
-              const pos = cue.position;
-              let cueX = (bb.x2 + bb.x1) / 2 - w / 2;
-              let cueY = (bb.y1 + bb.y2) / 2 - h / 2;
-              if (pos.startsWith('bottom')) {
-                cueY = bb.y2 - h / 2;
-              } else if (pos.startsWith('top')) {
-                cueY = bb.y1 - h / 2;
-              }
-              if (pos.endsWith('right')) {
-                cueX = bb.x2 - w / 2;
-              } else if (pos.endsWith('left')) {
-                cueX = bb.x1 - w / 2;
-              }
-              if (isEdge) {
-                const p = getCuePositionOnEdge(element, pos as EdgeCuePosition);
-                if (p) {
-                  cueX = p.x - w / 2;
-                  cueY = p.y - h / 2;
-                }
-              }
-              const margins = getMargins(cue, element);
-              cueX += (margins.x * z1);
-              cueY += (margins.y * z1);
-              cuePositions.push({
-                cueX: cueX,
-                cueY: cueY,
-              });
-              if (pos.startsWith('bottom')) {
-                overflow = Math.max(overflow, Math.abs(bb.y2 - cueY))
-              } else if (pos.startsWith('top')) {
-                overflow = Math.max(overflow, Math.abs(cueY - bb.y1))
-              }
-              if (pos.endsWith('right')) {
-                overflow = Math.max(overflow, Math.abs(cueX - bb.x2))
-              } else if (pos.endsWith('left')) {
-                overflow = Math.max(overflow, Math.abs(cueX - bb.x1))
-              }
-            }
-          }
-        }
-      }
-    }
-
-    if (options.full) {
-      overflow = overflow * Math.max(image.width / graphBoundingBox.w, image.height / graphBoundingBox.h)
-    } else {
-      overflow = 0; //Margin for the cues at the edges visibility is 0 if full is false
-    }
-    canvas.width = image.width + 2 * overflow;
-    canvas.height = image.height + 2 * overflow;
-    if (!ctx) {
-      throw new Error('Unable to obtain 2D context for canvas.');
-    }
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(image, overflow, overflow, image.width, image.height);
-    let index = 0;
-    for (const element of elements) {
-      const cues = element.getCueData();
-      for (const cueDic of Object.values(cues) as any[]) {
-        for (const key in cueDic) {
-          if (cueDic.hasOwnProperty(key)) {
-            const cue = cueDic[key];
-            if (cue.htmlElem) {
-              //Add cues to the image canvas in a manner analogous to adding them to the cytoscape canvas.
-              try {
-                //Use html2canvas package let you convert cue html element to canvas image
-                const elementHTML = cue.htmlElem as HTMLElement;
-                const dataUrl = await html2canvas(elementHTML, {
-                  scale: options.scale * (options.full ? 1/z1 : 1),
-                  ignoreElements: (element) => ignoreElementClasses.some((className) => element.classList.contains(className)),
-                  backgroundColor: 'transparent',
-                });
-                const cueImg = await loadImage(dataUrl.toDataURL());
-                const cueX = cuePositions[index].cueX;
-                const cueY = cuePositions[index].cueY;
-                let cueXSource;
-                let cueYSource;
-                if (options.full) {
-                  cueXSource = ((cueX - ((graphBoundingBox.x1 + graphBoundingBox.x2) / 2)) * image.width) / graphBoundingBox.w;
-                  cueYSource = ((cueY - ((graphBoundingBox.y1 + graphBoundingBox.y2) / 2)) * image.height) / graphBoundingBox.h;
-                  ctx.drawImage(cueImg, cueXSource + image.width / 2 + overflow, cueYSource + image.height / 2 + overflow, (z1 / options.scale) * cueImg.width * image.width / graphBoundingBox.w, (z1 / options.scale) * cueImg.height * image.height / graphBoundingBox.h);
-                } else {
-                  cueXSource = (cueX * image.width) / container.offsetWidth;
-                  cueYSource = (cueY * image.height) / container.offsetHeight;
-                  console.log()
-                  ctx.drawImage(cueImg, cueXSource, cueYSource, (1 / options.scale) * cueImg.width * image.width / container.offsetWidth, (1 / options.scale) * cueImg.height * image.height / container.offsetHeight);
-                }
-                index += 1;
-
-              } catch (error) {
-                console.error('Error processing image:', error);
-              }
-            }
-          }
-        }
-      }
-    }
-    const combinedBase64 = canvas.toDataURL();
-    return combinedBase64;
-
-  } catch (error) {
-    throw error;
+export async function pngFull(options: PngOptions, ignoreElementClasses: string[] = []): Promise<string> {
+  const cy = this;
+  let scale = options.scale? options.scale : 1;
+  const container = cy.container();
+  //If option !full then render the all  container
+  if (!options.full) {
+    return (
+      await html2canvas(container, {
+        backgroundColor: "transparent",
+        scale: scale,
+        ignoreElements: (element) => ignoreElementClasses.some((className) => element.classList.contains(className)),
+      })
+    ).toDataURL();
   }
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const base64png: string = cy.png(options);
+  const image = await loadImage(base64png);
+  const elements = cy.elements();
+  //Else option full calculate the positions of cues on the graphBoundingBox
+  const graphBoundingBox = cy.elements().renderedBoundingBox();
+  let z1 = (cy.zoom() / 2);
+  let overflow = 0;
+  let cuePositions: { cueX: number; cueY: number }[] = [];
+  for (const element of elements) {
+    const cues = element.getCueData();
+    for (const cueDic of Object.values(cues) as any[]) {
+      for (const key in cueDic) {
+        if (cueDic.hasOwnProperty(key)) {
+          const cue = cueDic[key];
+          if (cue.htmlElem) {
+            const bb = element.renderedBoundingBox({
+              includeLabels: false,
+              includeOverlays: false,
+            });
+            // Calculate cue position within the bounding box with the zoom information
+            const isEdge = element.isEdge();
+            const w = cue.htmlElem.offsetWidth * z1 ;
+            const h = cue.htmlElem.offsetHeight * z1;
+            const pos = cue.position;
+            let cueX = (bb.x2 + bb.x1) / 2 - w / 2;
+            let cueY = (bb.y1 + bb.y2) / 2 - h / 2;
+            if (pos.startsWith('bottom')) {
+              cueY = bb.y2 - h / 2;
+            } else if (pos.startsWith('top')) {
+              cueY = bb.y1 - h / 2;
+            }
+            if (pos.endsWith('right')) {
+              cueX = bb.x2 - w / 2;
+            } else if (pos.endsWith('left')) {
+              cueX = bb.x1 - w / 2;
+            }
+            if (isEdge) {
+              const p = getCuePositionOnEdge(element, pos as EdgeCuePosition);
+              if (p) {
+                cueX = p.x - w / 2;
+                cueY = p.y - h / 2;
+              }
+            }
+            const margins = getMargins(cue, element);
+            cueX +=margins.x;
+            cueY +=margins.y;
+            cuePositions.push({
+              cueX: cueX,
+              cueY: cueY,
+            });
+            if (pos.startsWith('bottom')) {
+              overflow = Math.max(overflow, Math.abs(bb.y2 - cueY))
+            } else if (pos.startsWith('top')) {
+              overflow = Math.max(overflow, Math.abs(cueY - bb.y1))
+            }
+            if (pos.endsWith('right')) {
+              overflow = Math.max(overflow, Math.abs(cueX - bb.x2))
+            } else if (pos.endsWith('left')) {
+              overflow = Math.max(overflow, Math.abs(cueX - bb.x1))
+            }
+          }
+        }
+      }
+    }
+  }
+  overflow = overflow * Math.max(image.width / graphBoundingBox.w, image.height / graphBoundingBox.h)
+  canvas.width = image.width + 2 * overflow;
+  canvas.height = image.height + 2 * overflow;
+  if (!ctx) {
+    throw new Error('Unable to obtain 2D context for canvas.');
+  }
+  ctx.fillStyle = options.bg ? options.bg : "white" ;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(image, overflow, overflow, image.width, image.height);
+  let index = 0;
+  for (const element of elements) {
+    const cues = element.getCueData();
+    for (const cueDic of Object.values(cues) as any[]) {
+      for (const key in cueDic) {
+        if (cueDic.hasOwnProperty(key)) {
+          const cue = cueDic[key];
+          if (cue.htmlElem) {
+            //Add cues to the image canvas in a manner analogous to adding them to the cytoscape canvas.
+            try {
+              //Use html2canvas package let you convert cue html element to canvas image
+              const elementHTML = cue.htmlElem as HTMLElement;
+              const dataUrl = await html2canvas(elementHTML, {
+                scale: scale/ z1,
+                ignoreElements: (element) => ignoreElementClasses.some((className) => element.classList.contains(className)),
+                backgroundColor: 'transparent',
+              });
+              const cueImg = await loadImage(dataUrl.toDataURL());
+              const cueX = cuePositions[index].cueX;
+              const cueY = cuePositions[index].cueY;;
+              let cueXSource = (((cueX - ((graphBoundingBox.x1 + graphBoundingBox.x2) / 2)) * image.width) / graphBoundingBox.w) + image.width / 2 + overflow;
+              let cueYSource = (((cueY - ((graphBoundingBox.y1 + graphBoundingBox.y2) / 2)) * image.height) / graphBoundingBox.h) + image.height / 2 + overflow;
+              console.log(z1 /scale)
+              ctx.drawImage(cueImg, cueXSource, cueYSource);
+              index += 1;
+
+            } catch (error) {
+              console.error('Error processing image:', error);
+            }
+          }
+        }
+      }
+    }
+  }
+  const combinedBase64 = canvas.toDataURL();
+  return combinedBase64;
 }
+
