@@ -16,16 +16,12 @@ export default [
       format: "umd",
       exports: "auto",
       plugins: [isProduction && terser()],
-      globals: {
-        html2canvas: 'html2canvas', // Specify the global variable for html2canvas
-      }
     },
     plugins: [
       nodeResolve(), // so Rollup can find `ms`
       commonjs(), // so Rollup can convert `ms` to an ES module
       typescript(), // so Rollup can convert TypeScript to JavaScript
     ],
-    external: ['html2canvas']
   },
 
   // CommonJS (for Node) and ES module (for bundlers) build.
