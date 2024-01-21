@@ -746,18 +746,6 @@ export function getActiveInstanceId() {
   return instanceId;
 }
 
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img2 = new Image();
-    img2.src = src;
-    img2.onload = () => resolve(img2);
-    img2.onerror = (error) => {
-      console.error('Error loading image:', error);
-      reject('Error loading image');
-    };
-
-  });
-}
 interface PngOptions {
   output?: 'base64uri' | 'base64' | 'blob' | 'blob-promise';
   bg?: string;
@@ -767,138 +755,68 @@ interface PngOptions {
   maxHeight?: number;
   quality?: number;
 }
+/**
+ * @param wait milliseconds to wait
+ * @returns 
+ */
+export function asyncWait(wait: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(true);
+    }, wait);
+  });
+}
 
 /**
- * Gets a PNG of the graph including the cues.
- * @param {PngOptions} options - PNG options.
- * @param {string[]} ignoreElementClasses - Array of classes to ignore.
- * @returns combinedBase64 - Base64-encoded PNG of the graph.
- */
+* Gets a PNG of the graph including the cues.
+* @param { PngOptions } options - PNG options.
+* @param { string[] } ignoreElementClasses - Array of classes to ignore.
+* @returns combinedBase64 - Base64 - encoded PNG of the graph.
+*/
 export async function pngFull(options: PngOptions, ignoreElementClasses: string[] = []): Promise<string> {
   const cy = this;
-  let scale = options.scale? options.scale : 1;
   const container = cy.container();
-  //If option !full then render the all  container
+  let scale = options.scale ? options.scale : 1;
   if (!options.full) {
     return (
       await html2canvas(container, {
         backgroundColor: "transparent",
         scale: scale,
+        logging:false,
         ignoreElements: (element) => ignoreElementClasses.some((className) => element.classList.contains(className)),
       })
     ).toDataURL();
   }
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  const base64png: string = cy.png(options);
-  const image = await loadImage(base64png);
+  const prevPan = cy.pan();
+  const prevZoom = cy.zoom();
   const elements = cy.elements();
-  //Else option full calculate the positions of cues on the graphBoundingBox
-  const graphBoundingBox = cy.elements().renderedBoundingBox();
-  let z1 = (cy.zoom() / 2);
-  let overflow = 0;
-  let cuePositions: { cueX: number; cueY: number }[] = [];
+  //Find the padding value for the canvas containing the cues on edges of the graph.
+  let padding = 0;
   for (const element of elements) {
     const cues = element.getCueData();
     for (const cueDic of Object.values(cues) as any[]) {
       for (const key in cueDic) {
         if (cueDic.hasOwnProperty(key)) {
           const cue = cueDic[key];
-          if (cue.htmlElem) {
-            const bb = element.renderedBoundingBox({
-              includeLabels: false,
-              includeOverlays: false,
-            });
-            // Calculate cue position within the bounding box with the zoom information
-            const isEdge = element.isEdge();
-            const w = cue.htmlElem.offsetWidth * z1 ;
-            const h = cue.htmlElem.offsetHeight * z1;
-            const pos = cue.position;
-            let cueX = (bb.x2 + bb.x1) / 2 - w / 2;
-            let cueY = (bb.y1 + bb.y2) / 2 - h / 2;
-            if (pos.startsWith('bottom')) {
-              cueY = bb.y2 - h / 2;
-            } else if (pos.startsWith('top')) {
-              cueY = bb.y1 - h / 2;
-            }
-            if (pos.endsWith('right')) {
-              cueX = bb.x2 - w / 2;
-            } else if (pos.endsWith('left')) {
-              cueX = bb.x1 - w / 2;
-            }
-            if (isEdge) {
-              const p = getCuePositionOnEdge(element, pos as EdgeCuePosition);
-              if (p) {
-                cueX = p.x - w / 2;
-                cueY = p.y - h / 2;
-              }
-            }
-            const margins = getMargins(cue, element);
-            cueX +=margins.x;
-            cueY +=margins.y;
-            cuePositions.push({
-              cueX: cueX,
-              cueY: cueY,
-            });
-            if (pos.startsWith('bottom')) {
-              overflow = Math.max(overflow, Math.abs(bb.y2 - cueY))
-            } else if (pos.startsWith('top')) {
-              overflow = Math.max(overflow, Math.abs(cueY - bb.y1))
-            }
-            if (pos.endsWith('right')) {
-              overflow = Math.max(overflow, Math.abs(cueX - bb.x2))
-            } else if (pos.endsWith('left')) {
-              overflow = Math.max(overflow, Math.abs(cueX - bb.x1))
-            }
-          }
+          const margins = getMargins(cue, element);
+          const marginsX = Math.abs(margins.x) +  cue.htmlElem.clientWidth/2;
+          const marginsY = Math.abs(margins.y)+ cue.htmlElem.clientHeight/2;
+          padding = Math.max(padding, marginsX, marginsY)
         }
       }
     }
   }
-  overflow = overflow * Math.max(image.width / graphBoundingBox.w, image.height / graphBoundingBox.h)
-  canvas.width = image.width + 2 * overflow;
-  canvas.height = image.height + 2 * overflow;
-  if (!ctx) {
-    throw new Error('Unable to obtain 2D context for canvas.');
-  }
-  ctx.fillStyle = options.bg ? options.bg : "white" ;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(image, overflow, overflow, image.width, image.height);
-  let index = 0;
-  for (const element of elements) {
-    const cues = element.getCueData();
-    for (const cueDic of Object.values(cues) as any[]) {
-      for (const key in cueDic) {
-        if (cueDic.hasOwnProperty(key)) {
-          const cue = cueDic[key];
-          if (cue.htmlElem) {
-            //Add cues to the image canvas in a manner analogous to adding them to the cytoscape canvas.
-            try {
-              //Use html2canvas package let you convert cue html element to canvas image
-              const elementHTML = cue.htmlElem as HTMLElement;
-              const dataUrl = await html2canvas(elementHTML, {
-                scale: scale/ z1,
-                ignoreElements: (element) => ignoreElementClasses.some((className) => element.classList.contains(className)),
-                backgroundColor: 'transparent',
-              });
-              const cueImg = await loadImage(dataUrl.toDataURL());
-              const cueX = cuePositions[index].cueX;
-              const cueY = cuePositions[index].cueY;;
-              let cueXSource = (((cueX - ((graphBoundingBox.x1 + graphBoundingBox.x2) / 2)) * image.width) / graphBoundingBox.w) + image.width / 2 + overflow;
-              let cueYSource = (((cueY - ((graphBoundingBox.y1 + graphBoundingBox.y2) / 2)) * image.height) / graphBoundingBox.h) + image.height / 2 + overflow;
-              console.log(z1 /scale)
-              ctx.drawImage(cueImg, cueXSource, cueYSource);
-              index += 1;
-
-            } catch (error) {
-              console.error('Error processing image:', error);
-            }
-          }
-        }
-      }
-    }
-  }
-  const combinedBase64 = canvas.toDataURL();
-  return combinedBase64;
+  cy.fit(elements, padding);
+  await asyncWait(150);
+  const results = (
+    await html2canvas(container, {
+      backgroundColor: "transparent",
+      scale: scale,
+      logging:false,
+      ignoreElements: (element) => ignoreElementClasses.some((className) => element.classList.contains(className)),
+    })
+  ).toDataURL();
+  cy.zoom(prevZoom);
+  cy.pan(prevPan);
+  return results;
 }
-
