@@ -1,3 +1,4 @@
+import html2canvas from "html2canvas";
 import {
   CueData,
   CueOptions,
@@ -743,4 +744,79 @@ export function setActiveInstance(id: number) {
  */
 export function getActiveInstanceId() {
   return instanceId;
+}
+
+interface PngOptions {
+  output?: 'base64uri' | 'base64' | 'blob' | 'blob-promise';
+  bg?: string;
+  full?: boolean;
+  scale?: number;
+  maxWidth?: number;
+  maxHeight?: number;
+  quality?: number;
+}
+/**
+ * @param wait milliseconds to wait
+ * @returns 
+ */
+export function asyncWait(wait: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(true);
+    }, wait);
+  });
+}
+
+/**
+* Gets a PNG of the graph including the cues.
+* @param { PngOptions } options - PNG options.
+* @param { string[] } ignoreElementClasses - Array of classes to ignore.
+* @returns combinedBase64 - Base64 - encoded PNG of the graph.
+*/
+export async function pngFull(options: PngOptions, ignoreElementClasses: string[] = []): Promise<string> {
+  const cy = this;
+  const container = cy.container();
+  let scale = options.scale ? options.scale : 1;
+  if (!options.full) {
+    return (
+      await html2canvas(container, {
+        backgroundColor: "transparent",
+        scale: scale,
+        logging:false,
+        ignoreElements: (element) => ignoreElementClasses.some((className) => element.classList.contains(className)),
+      })
+    ).toDataURL();
+  }
+  const prevPan = cy.pan();
+  const prevZoom = cy.zoom();
+  const elements = cy.elements();
+  //Find the padding value for the canvas containing the cues on edges of the graph.
+  let padding = 0;
+  for (const element of elements) {
+    const cues = element.getCueData();
+    for (const cueDic of Object.values(cues) as any[]) {
+      for (const key in cueDic) {
+        if (cueDic.hasOwnProperty(key)) {
+          const cue = cueDic[key];
+          const margins = getMargins(cue, element);
+          const marginsX = Math.abs(margins.x) +  cue.htmlElem.clientWidth/2;
+          const marginsY = Math.abs(margins.y)+ cue.htmlElem.clientHeight/2;
+          padding = Math.max(padding, marginsX, marginsY)
+        }
+      }
+    }
+  }
+  cy.fit(elements, padding);
+  await asyncWait(150);
+  const results = (
+    await html2canvas(container, {
+      backgroundColor: "transparent",
+      scale: scale,
+      logging:false,
+      ignoreElements: (element) => ignoreElementClasses.some((className) => element.classList.contains(className)),
+    })
+  ).toDataURL();
+  cy.zoom(prevZoom);
+  cy.pan(prevPan);
+  return results;
 }
